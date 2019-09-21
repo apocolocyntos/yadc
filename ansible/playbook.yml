@@ -1,14 +1,15 @@
 ---
 
 - hosts: tag_group_prometheus
-
   pre_tasks:
-
     - apt:
         update_cache: yes
-
   roles:
     - role: prometheus/node_exporter
     - role: prometheus/server
       vars:
         host_group: tag_group_prometheus
+
+- hosts: tag_group_grafana
+  roles:
+    - role: grafana

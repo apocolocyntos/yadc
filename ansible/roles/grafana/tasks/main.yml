@@ -1,0 +1,78 @@
+---
+
+- name: create group
+  group:
+    name: grafana
+    state: present
+    system: yes
+
+- name: create user
+  user:
+    comment: grafana
+    name: grafana
+    group: grafana
+    home: /srv/grafana
+    create_home: yes
+    system: yes
+    password_lock: yes
+
+- file:
+    path: /srv/grafana/{{ item }}
+    state: directory
+    owner: grafana
+    group: grafana
+    mode: 0750
+  with_items:
+    - data
+    - logs
+
+- name: download grafana
+  get_url:
+    url: '{{ grafana.url }}'
+    dest: /tmp/grafana.tar.gz
+    checksum: sha256:{{ grafana.checksum }}
+  become: yes
+  become_method: su
+  become_user: grafana
+
+- unarchive:
+    src: /tmp/grafana.tar.gz
+    dest: /tmp
+    remote_src: yes
+
+- copy:
+    src: /tmp/{{ grafana.filename }}/{{ item }}
+    dest: /srv/grafana
+    remote_src: yes
+    owner: grafana
+    group: grafana
+    mode: 0755
+  with_items:
+    - bin
+    - conf
+    - public
+    - scripts
+    - tools
+
+- name: copy config
+  template:
+    src: grafana.ini.j2
+    dest: /srv/grafana/conf/grafana.ini
+    owner: grafana
+    group: grafana
+    mode: 0640
+
+- name: add supervisor configuration
+  template:
+    src: supervisor.conf.j2
+    dest: /etc/supervisor/conf.d/grafana.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart supervisor
+
+- name: add grafana
+  supervisorctl:
+    config: /etc/supervisor/conf.d/grafana.conf
+    name: grafana
+    state: present

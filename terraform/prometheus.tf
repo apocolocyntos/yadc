@@ -12,9 +12,9 @@ resource "aws_route_table_association" "prometheus" {
 }
 
 
-resource "aws_security_group" "prometheus_in" {
-    name        = "prometheus_in"
-    description = "Allow Prometheus In"
+resource "aws_security_group" "prometheus" {
+    name        = "prometheus"
+    description = "Allow Prometheus"
     vpc_id      = "${aws_vpc.yadc.id}"
     ingress {
         protocol = "tcp"
@@ -26,12 +26,16 @@ resource "aws_security_group" "prometheus_in" {
         protocol = "tcp"
         from_port = 9100
         to_port   = 9100
-        cidr_blocks = ["${aws_subnet.prometheus.cidr_block}"]
+        cidr_blocks = [
+            "${aws_subnet.prometheus.cidr_block}"
+        ]
     }
     tags = {
-        Name = "Prometheus In"
+        Name = "Prometheus"
     }
 }
+
+
 
 resource "aws_instance" "prometheus" {
     ami                    = "${var.aws_instance.ami}"
@@ -42,7 +46,8 @@ resource "aws_instance" "prometheus" {
                                 "${aws_security_group.ssh_in.id}",
                                 "${aws_security_group.http_out.id}",
                                 "${aws_security_group.https_out.id}",
-                                "${aws_security_group.prometheus_in.id}"
+                                "${aws_security_group.prometheus.id}",
+                                "${aws_security_group.grafana.id}"
                             ]
     subnet_id              = "${aws_subnet.prometheus.id}"
     tags = {
