@@ -1,0 +1,59 @@
+---
+
+- name: create group
+  group:
+    name: prometheus
+    state: present
+    system: yes
+
+- name: create user
+  user:
+    comment: Prometheus
+    name: prometheus
+    group: prometheus
+    home: /srv/prometheus
+    create_home: yes
+    system: yes
+    password_lock: yes
+
+- name: download prometheus_node_exporter
+  get_url:
+    url: '{{ prometheus.url }}'
+    dest: /tmp/prometheus_node_exporter.tar.gz
+    checksum: sha256:{{ prometheus.checksum }}
+  become: yes
+  become_method: su
+  become_user: prometheus
+
+- unarchive:
+    src: /tmp/prometheus_node_exporter.tar.gz
+    dest: /tmp
+    remote_src: yes
+
+- copy:
+    src: /tmp/{{ prometheus.filename }}/node_exporter
+    dest: /usr/local/bin/prometheus_node_exporter
+    remote_src: yes
+    mode: 0755
+
+- file:
+    path: /srv/prometheus/logs
+    state: directory
+    owner: prometheus
+    group: prometheus
+    mode: 0750
+
+- name: add supervisor configuration
+  template:
+    src: supervisor.conf.j2
+    dest: /etc/supervisor/conf.d/prometheus_node_exporter.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart supervisor
+
+- name: start node_exporter
+  supervisorctl:
+    config: /etc/supervisor/conf.d/prometheus_node_exporter.conf
+    name: node_exporter
+    state: present

@@ -1,0 +1,75 @@
+---
+
+- name: create group
+  group:
+    name: prometheus
+    state: present
+    system: yes
+
+- name: create user
+  user:
+    comment: Prometheus
+    name: prometheus
+    group: prometheus
+    home: /srv/prometheus
+    create_home: yes
+    system: yes
+    password_lock: yes
+
+- file:
+    path: /srv/prometheus/{{ item }}
+    state: directory
+    owner: prometheus
+    group: prometheus
+    mode: 0750
+  with_items:
+    - data
+    - logs
+
+- name: download prometheus
+  get_url:
+    url: '{{ prometheus.url }}'
+    dest: /tmp/prometheus.tar.gz
+    checksum: sha256:{{ prometheus.checksum }}
+  become: yes
+  become_method: su
+  become_user: prometheus
+
+- unarchive:
+    src: /tmp/prometheus.tar.gz
+    dest: /tmp
+    remote_src: yes
+
+- copy:
+    src: /tmp/{{ prometheus.filename }}/{{ item }}
+    dest: /usr/local/bin
+    remote_src: yes
+    mode: 0755
+  with_items:
+    - prometheus
+    - promtool
+    - console_libraries
+    - consoles
+
+- template:
+    src: prometheus.yml.j2
+    dest: /srv/prometheus/prometheus.yml
+    owner: prometheus
+    group: prometheus
+    mode: 0644
+  notify: restart supervisor
+
+- name: add supervisor configuration
+  template:
+    src: supervisor.conf.j2
+    dest: /etc/supervisor/conf.d/prometheus.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart supervisor
+
+- name: add prometheus
+  supervisorctl:
+    config: /etc/supervisor/conf.d/prometheus.conf
+    name: prometheus
+    state: present

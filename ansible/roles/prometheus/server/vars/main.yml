@@ -1,0 +1,6 @@
+---
+
+prometheus:
+  filename: prometheus-2.12.0.linux-amd64
+  url: https://github.com/prometheus/prometheus/releases/download/v2.12.0/prometheus-2.12.0.linux-amd64.tar.gz
+  checksum: b9f57b6e64fb3048742cfa7dbcc727e1df906d8020ef246a5e81b7959ae97e08

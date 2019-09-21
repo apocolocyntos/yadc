@@ -1,0 +1,14 @@
+---
+
+
+- package:
+    name: 
+        - supervisor
+        - python
+        - python-socketio-client
+    state: present
+
+- service:
+    name: supervisor
+    state: started
+    enabled: yes

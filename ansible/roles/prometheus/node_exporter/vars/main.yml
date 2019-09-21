@@ -1,0 +1,6 @@
+---
+
+prometheus:
+  filename: node_exporter-0.18.1.linux-amd64
+  url: https://github.com/prometheus/node_exporter/releases/download/v0.18.1/node_exporter-0.18.1.linux-amd64.tar.gz
+  checksum: b2503fd932f85f4e5baf161268854bf5d22001869b84f00fd2d1f57b51b72424
