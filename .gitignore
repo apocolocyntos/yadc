@@ -8,5 +8,7 @@
 # .tfvars files
 *.tfvars
 
-.DS_Store
 **/terraform/env.tf
+
+.DS_Store
+/.vscode
