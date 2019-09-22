@@ -18,14 +18,14 @@ resource "aws_security_group" "prometheus" {
     vpc_id      = "${aws_vpc.yadc.id}"
     ingress {
         protocol = "tcp"
-        from_port = 9100
-        to_port   = 9100
+        from_port = "${var.prometheus.node.port}"
+        to_port   = "${var.prometheus.node.port}"
         cidr_blocks = ["${aws_subnet.prometheus.cidr_block}"]
     }
     egress {
         protocol = "tcp"
-        from_port = 9100
-        to_port   = 9100
+        from_port = "${var.prometheus.node.port}"
+        to_port   = "${var.prometheus.node.port}"
         cidr_blocks = [
             "${aws_subnet.prometheus.cidr_block}"
         ]

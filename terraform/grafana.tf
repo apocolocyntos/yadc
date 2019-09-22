@@ -17,8 +17,8 @@ resource "aws_security_group" "grafana" {
     vpc_id      = "${aws_vpc.yadc.id}"
     ingress {
         protocol = "tcp"
-        from_port = 9090
-        to_port   = 9090
+        from_port = "${var.prometheus.server.port}"
+        to_port   = "${var.prometheus.server.port}"
         cidr_blocks = [
             "${aws_subnet.prometheus.cidr_block}",
             "${aws_subnet.grafana.cidr_block}"
@@ -26,8 +26,8 @@ resource "aws_security_group" "grafana" {
     }
     egress {
         protocol = "tcp"
-        from_port = 9090
-        to_port   = 9090
+        from_port = "${var.prometheus.server.port}"
+        to_port   = "${var.prometheus.server.port}"
         cidr_blocks = [
             "${aws_subnet.prometheus.cidr_block}",
             "${aws_subnet.grafana.cidr_block}"

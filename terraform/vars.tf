@@ -14,3 +14,23 @@ variable "aws_instance" {
         }
     }
 }
+
+
+
+
+variable "prometheus" {
+    default = {
+        server = {
+            port = 9090
+        }
+        node = {
+            port = 9100
+        }
+    }
+}
+
+variable "grafana" {
+    default = {
+        port = 3000
+    }
+}
