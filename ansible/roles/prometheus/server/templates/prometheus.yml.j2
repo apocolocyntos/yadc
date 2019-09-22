@@ -17,9 +17,11 @@ scrape_configs:
   - job_name: 'prometheus'
     static_configs:
     - targets: ['localhost:9090']
-  - job_name: '{{ host_group }}'
+{% for group in host_group %}
+  - job_name: '{{ group }}'
     static_configs:
     - targets:
-{% for host in groups[host_group] %}
+{% for host in groups[group] %}
         - {{ hostvars[host].ec2_private_ip_address }}:9100
+{% endfor %}
 {% endfor %}
