@@ -1,7 +1,14 @@
 ---
 
+- hosts: localhost
+  tasks:
+    - file:
+        path: private
+        mode: 0700
+        state: directory
+
 - hosts: all
-  pre_tasks:
+  tasks:
     - apt:
         update_cache: yes
 
