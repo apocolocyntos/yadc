@@ -111,21 +111,3 @@
     config: /etc/supervisor/conf.d/grafana.conf
     name: grafana
     state: present
-
-- name: add prometheus data sources
-  grafana_datasource:
-    grafana_url: 'https://{{ ec2_ip_address }}:{{ service.port }}'
-    ds_type: prometheus
-    name: '{{ hostvars[item].ec2_tag_Name }}'
-    url: 'http://{{ hostvars[item].ec2_private_ip_address }}:9090'
-    #time_interval: 
-    #tls_client_key: undefined # not required. The client TLS private key,Starts with ----- BEGIN RSA PRIVATE KEY -----
-    grafana_user: admin
-    grafana_password: "{{ lookup('file','private/grafana_admin_password') }}"
-    #grafana_api_key: undefined # not required. The Grafana API key.,If set, C(grafana_user) and C(grafana_password) will be ignored.
-    #tls_client_cert: "{{ lookup('file','private/grafana.crt') }}"
-    #tls_client_key: "{{ lookup('file','private/grafana.key') }}"
-    #tls_ca_cert: "{{ lookup('file','private/rootca.crt') }}"
-    #tls_skip_verify: yes
-    validate_certs: false
-  with_items: "{{ groups['tag_group_prometheus'] }}"
