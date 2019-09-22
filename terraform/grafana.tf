@@ -11,6 +11,22 @@ resource "aws_route_table_association" "grafana" {
     route_table_id = "${aws_route_table.yadc.id}"
 }
 
+# Allow incoming from the internet
+resource "aws_security_group" "grafana_public" {
+    name        = "grafana_public"
+    description = "Allow Grafana Public"
+    vpc_id      = "${aws_vpc.yadc.id}"
+    ingress {
+        protocol  = "tcp"
+        from_port = 3000
+        to_port   = 3000
+        cidr_blocks = ["0.0.0.0/0"]
+    }
+    tags = {
+        Name = "Grafana Public"
+    }
+}
+
 resource "aws_security_group" "grafana" {
     name        = "grafana"
     description = "Allow Grafana"
@@ -44,9 +60,10 @@ resource "aws_instance" "grafana" {
     key_name               = "${aws_key_pair.yadc.key_name}"
     vpc_security_group_ids = [
                                 "${aws_security_group.ssh_in.id}",
-                                "${aws_security_group.http_out.id}",
-                                "${aws_security_group.https_out.id}",
-                                "${aws_security_group.grafana.id}"
+                                "${aws_security_group.default_out.id}",
+                                "${aws_security_group.prometheus.id}",
+                                "${aws_security_group.grafana.id}",
+                                "${aws_security_group.grafana_public.id}"
                             ]
     subnet_id              = "${aws_subnet.grafana.id}"
     tags = {

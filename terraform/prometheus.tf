@@ -20,14 +20,16 @@ resource "aws_security_group" "prometheus" {
         protocol = "tcp"
         from_port = "${var.prometheus.node.port}"
         to_port   = "${var.prometheus.node.port}"
-        cidr_blocks = ["${aws_subnet.prometheus.cidr_block}"]
+        cidr_blocks = [
+            "${aws_vpc.yadc.cidr_block}"
+        ]
     }
     egress {
         protocol = "tcp"
         from_port = "${var.prometheus.node.port}"
         to_port   = "${var.prometheus.node.port}"
         cidr_blocks = [
-            "${aws_subnet.prometheus.cidr_block}"
+            "${aws_vpc.yadc.cidr_block}"
         ]
     }
     tags = {
@@ -44,8 +46,7 @@ resource "aws_instance" "prometheus" {
     key_name               = "${aws_key_pair.yadc.key_name}"
     vpc_security_group_ids = [
                                 "${aws_security_group.ssh_in.id}",
-                                "${aws_security_group.http_out.id}",
-                                "${aws_security_group.https_out.id}",
+                                "${aws_security_group.default_out.id}",
                                 "${aws_security_group.prometheus.id}",
                                 "${aws_security_group.grafana.id}"
                             ]

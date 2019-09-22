@@ -1,4 +1,6 @@
-provider "aws" {}
+provider "aws" {
+    region = "${var.aws.region}"
+}
 
 
 # SSH-Key, defined in env.tf which is excluded by gitignore
@@ -55,9 +57,9 @@ resource "aws_security_group" "ssh_in" {
 
 
 # Allow outgoing http traffic
-resource "aws_security_group" "http_out" {
-    name        = "http_out"
-    description = "Allow HTTP Out"
+resource "aws_security_group" "default_out" {
+    name        = "default_out"
+    description = "Allow Default Out"
     vpc_id      = "${aws_vpc.yadc.id}"
     egress {
         protocol  = "tcp"
@@ -65,17 +67,6 @@ resource "aws_security_group" "http_out" {
         to_port   = 80
         cidr_blocks = ["0.0.0.0/0"]
     }
-    tags = {
-        Name = "HTTP Out"
-    }
-}
-
-
-# Allow outgoing https traffic
-resource "aws_security_group" "https_out" {
-    name        = "https_out"
-    description = "Allow HTTPS Out"
-    vpc_id      = "${aws_vpc.yadc.id}"
     egress {
         protocol  = "tcp"
         from_port = 443
@@ -83,6 +74,6 @@ resource "aws_security_group" "https_out" {
         cidr_blocks = ["0.0.0.0/0"]
     }
     tags = {
-        Name = "HTTPS Out"
+        Name = "HTTP Out"
     }
 }
