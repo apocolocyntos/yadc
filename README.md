@@ -1,6 +1,7 @@
 # yadc
 Yet Another Data-Center
 
+This is a playground for bootstrapping an entire datacenter with different services on AWS using [terraform](https://www.terraform.io) and [ansible](https://www.ansible.com/).
 
 ## Requirements
 
