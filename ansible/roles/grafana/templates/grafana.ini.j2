@@ -29,16 +29,16 @@ provisioning = conf/provisioning
 #################################### Server ##############################
 [server]
 # Protocol (http, https, socket)
-protocol = http
+protocol = {{ service.protocol }}
 
 # The ip address to bind to, empty will bind to all interfaces
 http_addr =
 
 # The http port to use
-http_port = 3000
+http_port = {{ service.port }}
 
 # The public facing domain name used to access grafana from a browser
-domain = localhost
+domain = {{ service.domain }}
 
 # Redirect to correct domain if host header does not match domain
 # Prevents DNS rebinding attacks
@@ -60,8 +60,8 @@ static_root_path = public
 enable_gzip = false
 
 # https certs & key file
-cert_file =
-cert_key =
+cert_file = /srv/grafana/ssl/cert.pem
+cert_key = /srv/grafana/ssl/key.pem
 
 # Unix socket path
 socket = /tmp/grafana.sock
@@ -159,7 +159,7 @@ google_tag_manager_id =
 admin_user = admin
 
 # default admin password, can be changed before first start of grafana, or in profile settings
-admin_password = iceman81
+admin_password = {{ lookup('password', 'private/grafana_admin_password length=32 chars=ascii_letters,digits,hexdigits') }}
 
 # used for signing
 secret_key = SW2YcwTIb9zpOOhoPsMm

@@ -25,6 +25,7 @@
   with_items:
     - data
     - logs
+    - ssl
 
 - name: download grafana
   get_url:
@@ -61,6 +62,40 @@
     owner: grafana
     group: grafana
     mode: 0640
+  notify: restart grafana
+
+- name: generate ssl certificate
+  block:
+    - openssl_privatekey:
+        path: private/grafana.key
+    - openssl_csr:
+        path: private/grafana.csr
+        privatekey_path: private/grafana.key
+        common_name: grafana.yadc.io
+    - openssl_certificate:
+        path: private/grafana.crt
+        privatekey_path: private/grafana.key
+        csr_path: private/grafana.csr
+        ownca_path: private/rootca.crt
+        ownca_privatekey_path: private/rootca.key
+        ownca_privatekey_passphrase: "{{ lookup('file','private/rootca.pw') }}"
+        provider: ownca
+  delegate_to: localhost
+  no_log: yes
+
+- copy:
+    src: '{{ item.src }}'
+    dest: /srv/grafana/ssl/{{ item.dest }}
+    owner: grafana
+    group: grafana
+    mode: 0600
+  with_items:
+    - src: 'private/grafana.crt'
+      dest: 'cert.pem'
+    - src: 'private/grafana.key'
+      dest: 'key.pem'
+  notify: restart grafana
+
 
 - name: add supervisor configuration
   template:
@@ -69,10 +104,28 @@
     owner: root
     group: root
     mode: 0644
-  notify: restart supervisor
+  notify: restart grafana
 
 - name: add grafana
   supervisorctl:
     config: /etc/supervisor/conf.d/grafana.conf
     name: grafana
     state: present
+
+- name: add prometheus data sources
+  grafana_datasource:
+    grafana_url: 'https://{{ ec2_ip_address }}:{{ service.port }}'
+    ds_type: prometheus
+    name: '{{ hostvars[item].ec2_tag_Name }}'
+    url: 'http://{{ hostvars[item].ec2_private_ip_address }}:9090'
+    #time_interval: 
+    #tls_client_key: undefined # not required. The client TLS private key,Starts with ----- BEGIN RSA PRIVATE KEY -----
+    grafana_user: admin
+    grafana_password: "{{ lookup('file','private/grafana_admin_password') }}"
+    #grafana_api_key: undefined # not required. The Grafana API key.,If set, C(grafana_user) and C(grafana_password) will be ignored.
+    #tls_client_cert: "{{ lookup('file','private/grafana.crt') }}"
+    #tls_client_key: "{{ lookup('file','private/grafana.key') }}"
+    #tls_ca_cert: "{{ lookup('file','private/rootca.crt') }}"
+    #tls_skip_verify: yes
+    validate_certs: false
+  with_items: "{{ groups['tag_group_prometheus'] }}"

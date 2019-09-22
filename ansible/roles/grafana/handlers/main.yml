@@ -1,0 +1,7 @@
+---
+
+- name: restart grafana
+  supervisorctl:
+    config: /etc/supervisor/conf.d/grafana.conf
+    name: grafana
+    state: restarted
