@@ -10,8 +10,11 @@
     - role: prometheus/node_exporter
     - role: prometheus/server
       vars:
-        host_group: tag_group_prometheus
+        host_group:
+          - tag_group_prometheus
+          - tag_group_grafana
 
 - hosts: tag_group_grafana
   roles:
+    - role: prometheus/node_exporter
     - role: grafana
