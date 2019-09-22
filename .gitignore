@@ -8,7 +8,9 @@
 # .tfvars files
 *.tfvars
 
-**/terraform/env.tf
+**/terraform/credentials.tf
 
 .DS_Store
 /.vscode
+
+**/private/*
