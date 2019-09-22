@@ -1,9 +1,11 @@
 ---
 
-- hosts: tag_group_prometheus
+- hosts: all
   pre_tasks:
     - apt:
         update_cache: yes
+
+- hosts: tag_group_prometheus
   roles:
     - role: prometheus/node_exporter
     - role: prometheus/server
