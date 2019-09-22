@@ -20,8 +20,14 @@
         host_group:
           - tag_group_prometheus
           - tag_group_grafana
+          - tag_group_theia_ide
 
 - hosts: tag_group_grafana
   roles:
     - role: prometheus/node_exporter
     - role: grafana
+
+- hosts: tag_group_theia_ide
+  roles:
+    - role: prometheus/node_exporter
+    - role: theia-ide
