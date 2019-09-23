@@ -11,13 +11,13 @@
     comment: grafana
     name: grafana
     group: grafana
-    home: {{ user.directory }}
+    home: '{{ user.directory }}'
     create_home: yes
     system: yes
     password_lock: yes
 
 - file:
-    path: {{ user.directory }}/{{ item }}
+    path: '{{ user.directory }}/{{ item }}'
     state: directory
     owner: grafana
     group: grafana
@@ -43,7 +43,7 @@
 
 - copy:
     src: /tmp/{{ grafana.filename }}/{{ item }}
-    dest: {{ user.directory }}
+    dest: '{{ user.directory }}'
     remote_src: yes
     owner: grafana
     group: grafana
@@ -58,7 +58,7 @@
 - name: copy config
   template:
     src: grafana.ini.j2
-    dest: {{ user.directory }}/conf/grafana.ini
+    dest: '{{ user.directory }}/conf/grafana.ini'
     owner: grafana
     group: grafana
     mode: 0640
@@ -71,21 +71,21 @@
     - openssl_csr:
         path: private/grafana.csr
         privatekey_path: private/grafana.key
-        common_name: grafana.yadc.io
+        common_name: '{{ openssl.common_name }}'
     - openssl_certificate:
         path: private/grafana.crt
         privatekey_path: private/grafana.key
         csr_path: private/grafana.csr
         ownca_path: private/rootca.crt
         ownca_privatekey_path: private/rootca.key
-        ownca_privatekey_passphrase: "{{ ownca_privatekey_passphrase }}"
+        ownca_privatekey_passphrase: '{{ ownca_privatekey_passphrase }}'
         provider: ownca
   delegate_to: localhost
   no_log: yes
 
 - copy:
     src: '{{ item.src }}'
-    dest: {{ user.directory }}/ssl/{{ item.dest }}
+    dest: '{{ user.directory }}/ssl/{{ item.dest }}'
     owner: grafana
     group: grafana
     mode: 0600
