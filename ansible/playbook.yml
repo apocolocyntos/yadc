@@ -27,6 +27,8 @@
     - role: prometheus/node_exporter
     - role: grafana
       vars:
+        openssl:
+          common_name: '{{ inventory_hostname }}'
         ownca_privatekey_passphrase: "{{ lookup('file','private/rootca.pw') }}"
         admin_password: "{{ lookup('password', 'private/grafana_admin_password length=32 chars=ascii_letters,digits,hexdigits') }}"
 
