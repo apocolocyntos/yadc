@@ -77,3 +77,4 @@ resource "aws_security_group" "default_out" {
         Name = "HTTP Out"
     }
 }
+

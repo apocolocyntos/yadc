@@ -55,7 +55,7 @@ resource "aws_security_group" "grafana" {
 # TODO: Restrict access from and to server
 resource "aws_instance" "grafana" {
     ami                    = "${var.aws_instance.ami}"
-    count                  = 1
+    count                  = "${var.aws_instance.count}"
     instance_type          = "${var.aws_instance.instance_type}"
     key_name               = "${aws_key_pair.yadc.key_name}"
     vpc_security_group_ids = [
@@ -70,5 +70,46 @@ resource "aws_instance" "grafana" {
         Name               = "grafana-${count.index}"
         os                 = "${var.aws_instance.tags.os}"
         group              = "grafana"
+    }
+}
+
+
+resource "aws_security_group" "grafana-db" {
+    name        = "grafana_db"
+    description = "Allow Access to Grafana DB"
+    vpc_id      = "${aws_vpc.yadc.id}"
+    ingress {
+        protocol = "tcp"
+        from_port = "${var.mysql.port}"
+        to_port   = "${var.mysql.port}"
+        cidr_blocks = [
+            "${aws_subnet.grafana.cidr_block}"
+        ]
+    }
+    egress {
+        protocol = "tcp"
+        from_port = "${var.mysql.port}"
+        to_port   = "${var.mysql.port}"
+        cidr_blocks = [
+            "${aws_subnet.grafana.cidr_block}"
+        ]
+    }
+}
+
+resource "aws_instance" "grafana-db" {
+    ami                    = "${var.aws_instance.ami}"
+    count                  = "${var.aws_instance.count}"
+    instance_type          = "${var.aws_instance.instance_type}"
+    key_name               = "${aws_key_pair.yadc.key_name}"
+    vpc_security_group_ids = [
+                                "${aws_security_group.ssh_in.id}",
+                                "${aws_security_group.default_out.id}",
+                                "${aws_security_group.grafana-db.id}"
+                            ]
+    subnet_id              = "${aws_subnet.grafana.id}"
+    tags = {
+        Name               = "grafana-db-${count.index}"
+        os                 = "${var.aws_instance.tags.os}"
+        group              = "grafana-db"
     }
 }

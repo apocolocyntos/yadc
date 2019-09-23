@@ -8,7 +8,7 @@ variable "aws_instance" {
     default = {
         ami = "ami-0ac05733838eabc06"
         instance_type = "t2.micro"
-        count = 3
+        count = 1
         tags = {
             os = "ubuntu"
         }
@@ -28,6 +28,13 @@ variable "prometheus" {
         }
     }
 }
+
+variable "mysql" {
+    default = {
+        port = 3306
+    }
+}
+
 
 variable "grafana" {
     default = {
