@@ -5,3 +5,10 @@ service:
   port: 3000
   domain: localhost
   protocol: https
+
+admin_user: admin
+
+user:
+  name: grafana
+  group: grafana
+  directory: /srv/grafana

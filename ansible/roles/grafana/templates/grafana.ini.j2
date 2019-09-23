@@ -60,8 +60,8 @@ static_root_path = public
 enable_gzip = false
 
 # https certs & key file
-cert_file = /srv/grafana/ssl/cert.pem
-cert_key = /srv/grafana/ssl/key.pem
+cert_file = {{ user.directory }}/ssl/cert.pem
+cert_key = {{ user.directory }}/ssl/key.pem
 
 # Unix socket path
 socket = /tmp/grafana.sock
@@ -156,10 +156,10 @@ google_tag_manager_id =
 #################################### Security ############################
 [security]
 # default admin user, created on startup
-admin_user = admin
+admin_user = "{{ admin_user }}"
 
 # default admin password, can be changed before first start of grafana, or in profile settings
-admin_password = {{ lookup('password', 'private/grafana_admin_password length=32 chars=ascii_letters,digits,hexdigits') }}
+admin_password = "{{ admin_password }}"
 
 # used for signing
 secret_key = SW2YcwTIb9zpOOhoPsMm

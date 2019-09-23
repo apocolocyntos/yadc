@@ -3,7 +3,7 @@ username=root
 serverurl=unix:///run/supervisor.sock
 
 [program:grafana]
-command=/srv/grafana/bin/grafana-server -config '/srv/grafana/conf/grafana.ini'
+command={{ user.directory }}/bin/grafana-server -config '{{ user.directory }}/conf/grafana.ini'
 user=grafana
-directory=/srv/grafana
-stdout_logfile=/srv/grafana/logs/grafana.log
+directory={{ user.directory }}
+stdout_logfile={{ user.directory }}/logs/grafana.log
