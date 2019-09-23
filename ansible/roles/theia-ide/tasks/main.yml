@@ -26,41 +26,24 @@
   with_items:
     - bin
 
-- name: download nodejs
+- name: download install script from nodesource
   get_url:
-    url: '{{ nodejs.url }}'
-    dest: /tmp/nodejs.tar.xz
+    url: https://deb.nodesource.com/setup_10.x
+    dest: /tmp/nodejs.sh
+    owner: theia-ide
+    group: theia-ide
+    mode: 0755
   become: yes
   become_method: su
   become_user: theia-ide
 
-- unarchive:
-    src: /tmp/nodejs.tar.xz
-    dest: /tmp
-    remote_src: yes
+- shell: /tmp/nodejs.sh
 
-- copy:
-    src: /tmp/{{ nodejs.filename }}/{{ item }}
-    dest: /srv/theia-ide/.nodejs
-    owner: theia-ide
-    group: theia-ide
-    mode: 0750
-    remote_src: yes
-  with_items:
-    - bin
-    - include
-    - lib
-    - share
+- apt:
+    update_cache: yes
 
-- lineinfile:
-    path: /srv/theia-ide/.bashrc
-    line: export PATH=$HOME/.nodejs/bin:$PATH
+- package:
+    name:
+      - nodejs
+      - yarn
     state: present
-
-- npm:
-    name: yarn
-    state: present
-    global: yes
-  become: yes
-  become_user: theia-ide
-  become_method: sudo
