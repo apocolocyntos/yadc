@@ -9,7 +9,7 @@ resource "aws_network_acl" "network_acl_default" {
   subnet_ids = [
     aws_subnet.subnet_default_a.id,
     aws_subnet.subnet_default_b.id,
-    # aws_subnet.subnet_default_c.id,
+    aws_subnet.subnet_default_c.id,
   ]
   tags = var.tags
 }

@@ -26,8 +26,8 @@ resource "aws_route_table_association" "rtbaccoc_b" {
   route_table_id = aws_route_table.route_table_default.id
 }
 
-# # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table_association
-# resource "aws_route_table_association" "rtbaccoc_c" {
-#   subnet_id      = aws_subnet.subnet_default_c.id
-#   route_table_id = aws_route_table.route_table_default.id
-# }
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table_association
+resource "aws_route_table_association" "rtbaccoc_c" {
+  subnet_id      = aws_subnet.subnet_default_c.id
+  route_table_id = aws_route_table.route_table_default.id
+}
