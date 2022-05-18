@@ -5,8 +5,9 @@ RUN apt-get update && \
 
 ARG TMP_DIR=/tmp
 ARG BIN_DIR=/usr/local/bin
+ARG TF_VERSION=1.1.9
 
-RUN curl -L -o ${TMP_DIR}/terraform.zip https://releases.hashicorp.com/terraform/1.1.9/terraform_1.1.9_linux_amd64.zip && \
+RUN curl -L -o ${TMP_DIR}/terraform.zip https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip && \
   cd ${BIN_DIR} && \
   unzip ${TMP_DIR}/terraform.zip && \
   rm ${TMP_DIR}/terraform.zip
