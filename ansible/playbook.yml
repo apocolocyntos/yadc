@@ -1,0 +1,38 @@
+---
+
+- hosts: localhost
+  tasks:
+    - file:
+        path: private
+        mode: 0700
+        state: directory
+
+- hosts: all
+  tasks:
+    - apt:
+        update_cache: yes
+
+- hosts: tag_group_prometheus
+  roles:
+    - role: prometheus/node_exporter
+    - role: prometheus/server
+      vars:
+        host_group:
+          - tag_group_prometheus
+          - tag_group_grafana
+          - tag_group_theia_ide
+
+- hosts: tag_group_grafana
+  roles:
+    - role: prometheus/node_exporter
+    - role: grafana
+      vars:
+        openssl:
+          common_name: '{{ inventory_hostname }}'
+        ownca_privatekey_passphrase: "{{ lookup('file','private/rootca.pw') }}"
+        admin_password: "{{ lookup('password', 'private/grafana_admin_password length=32 chars=ascii_letters,digits,hexdigits') }}"
+
+- hosts: tag_group_theia_ide
+  roles:
+    - role: prometheus/node_exporter
+    - role: theia-ide

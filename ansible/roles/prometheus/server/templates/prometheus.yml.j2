@@ -1,0 +1,27 @@
+global:
+  scrape_interval:     15s
+  evaluation_interval: 15s
+
+alerting:
+  alertmanagers:
+  - static_configs:
+    - targets:
+      # - alertmanager:9093
+
+# Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
+rule_files:
+  # - "first_rules.yml"
+  # - "second_rules.yml"
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+    - targets: ['localhost:9090']
+{% for group in host_group %}
+  - job_name: '{{ group }}'
+    static_configs:
+    - targets:
+{% for host in groups[group] %}
+        - {{ hostvars[host].ec2_private_ip_address }}:9100
+{% endfor %}
+{% endfor %}

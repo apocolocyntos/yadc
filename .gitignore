@@ -7,3 +7,10 @@
 
 # .tfvars files
 *.tfvars
+
+**/terraform/credentials.tf
+
+.DS_Store
+/.vscode
+
+**/private/*

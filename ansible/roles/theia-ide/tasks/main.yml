@@ -1,0 +1,49 @@
+---
+
+- name: create group
+  group:
+    name: theia-ide
+    state: present
+    system: yes
+
+- name: create user
+  user:
+    comment: theia-ide
+    name: theia-ide
+    group: theia-ide
+    home: /srv/theia-ide
+    shell: /bin/bash
+    create_home: yes
+    system: yes
+    password_lock: yes
+
+- file:
+    path: /srv/theia-ide/{{ item }}
+    state: directory
+    owner: theia-ide
+    group: theia-ide
+    mode: 0750
+  with_items:
+    - bin
+
+- name: download install script from nodesource
+  get_url:
+    url: https://deb.nodesource.com/setup_10.x
+    dest: /tmp/nodejs.sh
+    owner: theia-ide
+    group: theia-ide
+    mode: 0755
+  become: yes
+  become_method: su
+  become_user: theia-ide
+
+- shell: /tmp/nodejs.sh
+
+- apt:
+    update_cache: yes
+
+- package:
+    name:
+      - nodejs
+      - yarn
+    state: present

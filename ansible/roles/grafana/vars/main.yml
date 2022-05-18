@@ -1,0 +1,6 @@
+---
+
+grafana:
+  filename: grafana-6.3.5
+  url: https://dl.grafana.com/oss/release/grafana-6.3.5.linux-amd64.tar.gz
+  checksum: 0104bfe14444cea2fa3f021b9a75fc78f66434f2ca8f3d0bdd422d108ce682e7

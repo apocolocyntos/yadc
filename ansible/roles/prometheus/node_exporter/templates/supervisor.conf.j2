@@ -1,0 +1,8 @@
+[supervisorctl]
+username=root
+serverurl=unix:///run/supervisor.sock
+
+[program:node_exporter]
+command=/usr/local/bin/prometheus_node_exporter
+user=prometheus
+stdout_logfile=/srv/prometheus/logs/prometheus_node_exporter.log

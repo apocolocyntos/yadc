@@ -1,0 +1,35 @@
+---
+
+- hosts: localhost
+
+  tasks:
+    - file:
+        path: certificates
+        state: directory
+    
+    - openssl_privatekey:
+        path: certificates/root.key
+    - openssl_csr:
+        path: certificates/root.csr
+        privatekey_path: certificates/root.key
+        common_name: YADC RootCA
+    - openssl_certificate:
+        path: certificates/root.crt
+        privatekey_path: certificates/root.key
+        csr_path: certificates/root.csr
+        provider: selfsigned
+
+    - openssl_privatekey:
+        path: certificates/intermediate.key
+    - openssl_csr:
+        path: certificates/intermediate.csr
+        privatekey_path: certificates/intermediate.key
+        common_name: YADC Intermediate
+    - openssl_certificate:
+        path: certificates/intermediate.crt
+        privatekey_path: certificates/intermediate.key
+        csr_path: certificates/intermediate.csr
+        ownca_path: certificates/root.crt
+        ownca_privatekey_path: certificates/root.key
+        provider: ownca
+

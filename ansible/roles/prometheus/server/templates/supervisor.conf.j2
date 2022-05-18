@@ -1,0 +1,9 @@
+[supervisorctl]
+username=root
+serverurl=unix:///run/supervisor.sock
+
+[program:prometheus]
+command=prometheus --config.file=/srv/prometheus/prometheus.yml
+user=prometheus
+directory=/srv/prometheus
+stdout_logfile=/srv/prometheus/logs/prometheus.log

@@ -1,0 +1,113 @@
+---
+
+- name: create group
+  group:
+    name: grafana
+    state: present
+    system: yes
+
+- name: create user
+  user:
+    comment: grafana
+    name: grafana
+    group: grafana
+    home: '{{ user.directory }}'
+    create_home: yes
+    system: yes
+    password_lock: yes
+
+- file:
+    path: '{{ user.directory }}/{{ item }}'
+    state: directory
+    owner: grafana
+    group: grafana
+    mode: 0750
+  with_items:
+    - data
+    - logs
+    - ssl
+
+- name: download grafana
+  get_url:
+    url: '{{ grafana.url }}'
+    dest: /tmp/grafana.tar.gz
+    checksum: sha256:{{ grafana.checksum }}
+  become: yes
+  become_method: su
+  become_user: grafana
+
+- unarchive:
+    src: /tmp/grafana.tar.gz
+    dest: /tmp
+    remote_src: yes
+
+- copy:
+    src: /tmp/{{ grafana.filename }}/{{ item }}
+    dest: '{{ user.directory }}'
+    remote_src: yes
+    owner: grafana
+    group: grafana
+    mode: 0755
+  with_items:
+    - bin
+    - conf
+    - public
+    - scripts
+    - tools
+
+- name: copy config
+  template:
+    src: grafana.ini.j2
+    dest: '{{ user.directory }}/conf/grafana.ini'
+    owner: grafana
+    group: grafana
+    mode: 0640
+  notify: restart grafana
+
+- name: generate ssl certificate
+  block:
+    - openssl_privatekey:
+        path: private/grafana.key
+    - openssl_csr:
+        path: private/grafana.csr
+        privatekey_path: private/grafana.key
+        common_name: '{{ openssl.common_name }}'
+    - openssl_certificate:
+        path: private/grafana.crt
+        privatekey_path: private/grafana.key
+        csr_path: private/grafana.csr
+        ownca_path: private/rootca.crt
+        ownca_privatekey_path: private/rootca.key
+        ownca_privatekey_passphrase: '{{ ownca_privatekey_passphrase }}'
+        provider: ownca
+  delegate_to: localhost
+  no_log: yes
+
+- copy:
+    src: '{{ item.src }}'
+    dest: '{{ user.directory }}/ssl/{{ item.dest }}'
+    owner: grafana
+    group: grafana
+    mode: 0600
+  with_items:
+    - src: 'private/grafana.crt'
+      dest: 'cert.pem'
+    - src: 'private/grafana.key'
+      dest: 'key.pem'
+  notify: restart grafana
+
+
+- name: add supervisor configuration
+  template:
+    src: supervisor.conf.j2
+    dest: /etc/supervisor/conf.d/grafana.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart grafana
+
+- name: add grafana
+  supervisorctl:
+    config: /etc/supervisor/conf.d/grafana.conf
+    name: grafana
+    state: present
