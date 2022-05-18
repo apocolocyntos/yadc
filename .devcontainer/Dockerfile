@@ -1,13 +1,11 @@
-FROM ubuntu:22.04
+# See here for image contents: https://github.com/microsoft/vscode-dev-containers/tree/v0.234.0/containers/ubuntu/.devcontainer/base.Dockerfile
 
-RUN apt-get update && \
-  apt-get install -y curl unzip
+# [Choice] Ubuntu version (use ubuntu-22.04 or ubuntu-18.04 on local arm64/Apple Silicon): ubuntu-22.04, ubuntu-20.04, ubuntu-18.04
+ARG VARIANT="jammy"
+FROM mcr.microsoft.com/vscode/devcontainers/base:0-${VARIANT}
 
-ARG TMP_DIR=/tmp
-ARG BIN_DIR=/usr/local/bin
-ARG TF_VERSION=1.1.9
+# [Optional] Uncomment this section to install additional OS packages.
+# RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
+#     && apt-get -y install --no-install-recommends <your-package-list-here>
 
-RUN curl -L -o ${TMP_DIR}/terraform.zip https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip && \
-  cd ${BIN_DIR} && \
-  unzip ${TMP_DIR}/terraform.zip && \
-  rm ${TMP_DIR}/terraform.zip
+
