@@ -31,8 +31,6 @@ resource "aws_eks_cluster" "eks_cluster_default" {
   name     = "default"
   role_arn = aws_iam_role.iam_role_eks_default.arn
 
-  version = "1.23"
-
   vpc_config {
     subnet_ids = [
       aws_subnet.subnet_default_a.id,
