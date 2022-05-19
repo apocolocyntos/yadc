@@ -1,6 +1,6 @@
 
 resource "aws_vpc" "vpc_default" {
-  cidr_block = "172.31.0.0/16"
+  cidr_block = "172.29.0.0/16"
 }
 
 data "aws_availability_zones" "available" {
