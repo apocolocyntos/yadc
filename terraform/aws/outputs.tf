@@ -7,5 +7,5 @@ output "eks" {
 }
 
 output "subnetcidr" {
-  value = cidrsubnet(aws_vpc.default.cidr_block, 8, 0)
+  value = cidrsubnet(aws_vpc.vpc_default.cidr_block, 8, 0)
 }
