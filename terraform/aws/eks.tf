@@ -85,9 +85,9 @@ resource "aws_iam_role_policy_attachment" "iam_role_policy_attachment_node_group
 }
 
 resource "aws_eks_node_group" "example" {
-  cluster_name    = aws_eks_cluster.example.name
+  cluster_name    = aws_eks_cluster.eks_cluster_default.name
   node_group_name = "node-group-default"
-  node_role_arn   = aws_iam_role.example.arn
+  node_role_arn   = aws_iam_role.iam_role_eks_node_group_default.arn
   subnet_ids = [
     aws_subnet.subnet_default_a.id,
     aws_subnet.subnet_default_b.id,
