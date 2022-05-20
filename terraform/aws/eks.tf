@@ -100,6 +100,10 @@ resource "aws_eks_node_group" "eks_node_group_0" {
     max_unavailable = 1
   }
 
+  tags = {
+    "kubernetes.io/cluster/${aws_eks_cluster.eks_cluster.name}" = "owned"
+  }
+
   depends_on = [
     aws_iam_role_policy_attachment.iam_role_policy_attachment_node_group_AmazonEKSWorkerNodePolicy,
     aws_iam_role_policy_attachment.iam_role_policy_attachment_node_group_AmazonEKS_CNI_Policy,
