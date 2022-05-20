@@ -32,7 +32,7 @@ resource "aws_iam_role_policy_attachment" "iam_role_policy_attachment_eks_EKSVPC
 }
 
 resource "aws_eks_cluster" "eks_cluster" {
-  name     = "cluster-0"
+  name     = var.eks_cluster_name
   role_arn = aws_iam_role.iam_role_eks.arn
 
   vpc_config {
@@ -101,7 +101,7 @@ resource "aws_eks_node_group" "eks_node_group_0" {
   }
 
   tags = {
-    "kubernetes.io/cluster/${aws_eks_cluster.eks_cluster.name}" = "owned"
+    "kubernetes.io/cluster/${var.eks_cluster_name}" = "owned"
   }
 
   depends_on = [
