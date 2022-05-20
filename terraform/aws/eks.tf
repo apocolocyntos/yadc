@@ -39,6 +39,8 @@ resource "aws_eks_cluster" "eks_cluster" {
     subnet_ids = aws_subnet.subnet_eks[*].id
   }
 
+  version = "1.22"
+
   depends_on = [
     aws_iam_role_policy_attachment.iam_role_policy_attachment_eks_EKSClusterPolicy,
     aws_iam_role_policy_attachment.iam_role_policy_attachment_eks_EKSVPCResourceController,
@@ -81,11 +83,12 @@ resource "aws_iam_role_policy_attachment" "iam_role_policy_attachment_node_group
   role       = aws_iam_role.iam_role_eks_node_group.name
 }
 
-resource "aws_eks_node_group" "example" {
-  cluster_name    = aws_eks_cluster.eks_cluster.name
-  node_group_name = "node-group-0"
-  node_role_arn   = aws_iam_role.iam_role_eks_node_group.arn
-  subnet_ids      = aws_subnet.subnet_eks[*].id
+resource "aws_eks_node_group" "eks_node_group_0" {
+  cluster_name       = aws_eks_cluster.eks_cluster.name
+  node_group_name    = "node-group-0"
+  node_role_arn      = aws_iam_role.iam_role_eks_node_group.arn
+  subnet_ids         = aws_subnet.subnet_eks[*].id
+  security_group_ids = [aws_security_group.security_group_eks.id]
 
   scaling_config {
     desired_size = 1
