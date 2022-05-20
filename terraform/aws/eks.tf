@@ -36,8 +36,10 @@ resource "aws_eks_cluster" "eks_cluster" {
   role_arn = aws_iam_role.iam_role_eks.arn
 
   vpc_config {
-    subnet_ids         = aws_subnet.subnet_eks[*].id
-    security_group_ids = [aws_security_group.security_group_eks.id]
+    subnet_ids              = aws_subnet.subnet_eks[*].id
+    security_group_ids      = [aws_security_group.security_group_eks.id]
+    endpoint_private_access = true
+    endpoint_public_access  = true
   }
 
   version = "1.22"
@@ -84,29 +86,29 @@ resource "aws_iam_role_policy_attachment" "iam_role_policy_attachment_node_group
   role       = aws_iam_role.iam_role_eks_node_group.name
 }
 
-resource "aws_eks_node_group" "eks_node_group_0" {
-  cluster_name    = aws_eks_cluster.eks_cluster.name
-  node_group_name = "node-group-0"
-  node_role_arn   = aws_iam_role.iam_role_eks_node_group.arn
-  subnet_ids      = aws_subnet.subnet_eks[*].id
+# resource "aws_eks_node_group" "eks_node_group_0" {
+#   cluster_name    = aws_eks_cluster.eks_cluster.name
+#   node_group_name = "node-group-0"
+#   node_role_arn   = aws_iam_role.iam_role_eks_node_group.arn
+#   subnet_ids      = aws_subnet.subnet_eks[*].id
 
-  scaling_config {
-    desired_size = 1
-    max_size     = 2
-    min_size     = 1
-  }
+#   scaling_config {
+#     desired_size = 1
+#     max_size     = 2
+#     min_size     = 1
+#   }
 
-  update_config {
-    max_unavailable = 1
-  }
+#   update_config {
+#     max_unavailable = 1
+#   }
 
-  tags = {
-    "kubernetes.io/cluster/${var.eks_cluster_name}" = "owned"
-  }
+#   tags = {
+#     "kubernetes.io/cluster/${var.eks_cluster_name}" = "owned"
+#   }
 
-  depends_on = [
-    aws_iam_role_policy_attachment.iam_role_policy_attachment_node_group_AmazonEKSWorkerNodePolicy,
-    aws_iam_role_policy_attachment.iam_role_policy_attachment_node_group_AmazonEKS_CNI_Policy,
-    aws_iam_role_policy_attachment.iam_role_policy_attachment_node_group_AmazonEC2ContainerRegistryReadOnly,
-  ]
-}
+#   depends_on = [
+#     aws_iam_role_policy_attachment.iam_role_policy_attachment_node_group_AmazonEKSWorkerNodePolicy,
+#     aws_iam_role_policy_attachment.iam_role_policy_attachment_node_group_AmazonEKS_CNI_Policy,
+#     aws_iam_role_policy_attachment.iam_role_policy_attachment_node_group_AmazonEC2ContainerRegistryReadOnly,
+#   ]
+# }
