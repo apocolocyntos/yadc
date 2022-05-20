@@ -5,7 +5,7 @@ resource "aws_subnet" "subnet_eks" {
   map_public_ip_on_launch = true
   cidr_block              = cidrsubnet(aws_vpc.vpc_eks.cidr_block, 4, count.index)
   tags = {
-    "kubernetes.io/cluster/${aws_eks_cluster.eks_cluster.name}" = "shared"
+    "kubernetes.io/cluster/${var.eks_cluster_name}" = "shared"
   }
 }
 
