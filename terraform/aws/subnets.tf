@@ -19,7 +19,9 @@ resource "aws_subnet" "subnet_eks" {
 resource "aws_network_acl" "network_acl_default" {
   vpc_id     = aws_vpc.vpc_eks.id
   subnet_ids = aws_subnet.subnet_eks[*].id
-  tags       = var.tags
+  tags = {
+    "kubernetes.io/cluster/${var.eks_cluster_name}" = "shared"
+  }
 }
 
 

@@ -40,5 +40,7 @@ resource "aws_security_group" "security_group_eks" {
     },
   ]
   revoke_rules_on_delete = true
-  tags                   = var.tags
+  tags = {
+    "kubernetes.io/cluster/${var.eks_cluster_name}" = "shared"
+  }
 }
