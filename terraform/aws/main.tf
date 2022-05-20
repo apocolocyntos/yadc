@@ -1,6 +1,9 @@
 
 resource "aws_vpc" "vpc_eks" {
   cidr_block = "172.29.0.0/16"
+  tags = {
+    "kubernetes.io/cluster/${var.eks_cluster_name}" = "shared"
+  }
 }
 
 data "aws_availability_zones" "available" {
