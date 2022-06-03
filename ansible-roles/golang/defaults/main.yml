@@ -1,0 +1,5 @@
+golang:
+  goroot: $HOME
+  dependencies:
+    - gcc
+    - g++

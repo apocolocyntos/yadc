@@ -1,0 +1,37 @@
+- name: generate private key
+  openssl_privatekey:
+    path: "{{ work_dir | default(playbook_dir + '/tmp') }}/docker-intermediate.key"
+    type: RSA
+    size: 2048
+    state: present
+    mode: 0600
+  delegate_to: localhost
+  run_once: true
+
+- name: generate csr
+  openssl_csr:
+    path: "{{ work_dir | default(playbook_dir + '/tmp') }}/docker-intermediate.csr"
+    privatekey_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/docker-intermediate.key"
+    common_name: "Docker Intermediate CA"
+    basic_constraints:
+      - CA:TRUE
+      - pathlen:0
+    key_usage:
+      - digitalSignature
+      - keyCertSign
+    state: present
+    mode: 0600
+  delegate_to: localhost
+  run_once: true
+
+- name: generate crt
+  openssl_certificate:
+    path: "{{ work_dir | default(playbook_dir + '/tmp') }}/docker-intermediate.crt"
+    privatekey_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/docker-intermediate.key"
+    csr_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/docker-intermediate.csr"
+    provider: ownca
+    ownca_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/ca.crt"
+    ownca_privatekey_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/ca.key"
+    mode: 0644
+  delegate_to: localhost
+  run_once: true

@@ -1,0 +1,1 @@
+common resources for all Kubernetes components

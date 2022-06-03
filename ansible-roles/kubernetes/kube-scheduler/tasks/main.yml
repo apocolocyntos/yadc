@@ -1,0 +1,48 @@
+- name: generate certificate
+  include_tasks: cert.yml
+
+- name: copy binaries
+  copy:
+    src: "{{ work_dir | default(playbook_dir + '/tmp') }}/kubernetes/server/bin/kube-scheduler"
+    dest: /usr/local/bin/kube-scheduler
+    owner: root
+    group: root
+    mode: 0755
+  become: true
+
+- name: create /etc/kubernetes/config
+  file:
+    path: /etc/kubernetes/config
+    state: directory
+    owner: "{{ kubernetes.user }}"
+    group: "{{ kubernetes.group }}"
+    mode: 0755
+  become: true
+
+- name: copy kube-scheduler.yaml
+  template:
+    src: templates/kube-scheduler.yaml
+    dest: /etc/kubernetes/config/kube-scheduler.yaml
+    owner: "{{ kubernetes.user }}"
+    group: "{{ kubernetes.group }}"
+    mode: 0600
+  become: true
+  notify: restart kube-scheduler
+
+- name: copy kube-scheduler.service
+  template:
+    src: templates/kube-scheduler.service
+    dest: /etc/systemd/system/kube-scheduler.service
+    owner: root
+    group: root
+    mode: 0644
+  become: true
+  notify: restart kube-scheduler
+
+- name: start service
+  systemd:
+    name: kube-scheduler
+    state: started
+    enabled: true
+    daemon_reload: true
+  become: true

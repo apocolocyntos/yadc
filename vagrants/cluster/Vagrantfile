@@ -1,0 +1,36 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+
+  config.vm.box = "debian/bullseye64"
+
+  config.vm.provider :libvirt do |libvirt|
+    libvirt.cpus   = 2
+    libvirt.memory = 2048
+  end
+
+  N = 4
+  (1..N).each do |i|
+    config.vm.define "node-#{i}" do |node|
+      node.vm.network "private_network", 
+        ip: "192.168.56.#{i}0"
+      if i == N
+        node.vm.provision "ansible" do |ansible|
+          ansible.playbook = "playbook.yml"
+          ansible.groups = {
+            "all:vars"   => {
+              "domain" => "yadc.local",
+            },
+            "nodes"      => ["node-[1:4]"],
+            "etcd"       => ["node-2:4"],
+            "prometheus" => ["node-[2:3]"],
+            "loki"       => ["node-[3:4]"],
+            "grafana"    => ["node-4"],
+          }
+          ansible.limit = "all"
+        end
+      end
+    end
+  end
+end

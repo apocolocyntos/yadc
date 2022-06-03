@@ -1,0 +1,18 @@
+{
+    "debug": true,
+    "data-root": "{{ docker.data_dir }}",
+    "exec-root": "{{ docker.exec_dir }}",
+    "group": "{{ docker.group }}",
+    "hosts": [
+        "127.0.0.1:{{ docker.port }}",
+        "{{ hostvars[inventory_hostname].ansible_facts[network_interface][network_protocol].address }}:{{ docker.port }}"
+    ],
+    "init-path": "{{ docker.bin_dir }}/docker-init",
+    "selinux-enabled": {% if ansible_selinux.status == 'enabled' %}true{% else %}false{% endif %},
+    "swarm-default-advertise-addr": "{{ hostvars[inventory_hostname].ansible_facts[network_interface][network_protocol].address }}",
+    "tls": true,
+    "tlscacert": "{{ docker.config_dir }}/ssl/ca.pem",
+    "tlscert": "{{ docker.config_dir }}/ssl/cert.pem",
+    "tlskey": "{{ docker.config_dir }}/ssl/key.pem",
+    "tlsverify": true
+}

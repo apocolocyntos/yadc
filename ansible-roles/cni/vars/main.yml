@@ -1,0 +1,5 @@
+cni:
+  user: root
+  group: root
+  version: 1.0.0
+  checksum: sha256:5894883eebe3e38f4474810d334b00dc5ec59bd01332d1f92ca4eb142a67d2e8

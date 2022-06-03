@@ -1,0 +1,39 @@
+[Unit]
+Description=Kubernetes API Server
+Documentation=https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/
+
+[Service]
+ExecStart=/usr/local/bin/kube-apiserver \
+  --allow-privileged=true \
+  --apiserver-count=1 \
+  --audit-log-maxage=30 \
+  --audit-log-maxbackup=3 \
+  --audit-log-maxsize=100 \
+  --audit-log-path=/var/log/audit.log \
+  --authorization-mode=Node,RBAC \
+  --bind-address=0.0.0.0 \
+  --client-ca-file=/etc/kubernetes/ssl/ca.crt \
+  --enable-admission-plugins=NamespaceLifecycle,NodeRestriction,LimitRanger,ServiceAccount,DefaultStorageClass,ResourceQuota \
+  --etcd-cafile=/etc/kubernetes/ssl/ca.crt \
+  --etcd-certfile=/etc/kubernetes/ssl/kubernetes.crt \
+  --etcd-keyfile=/etc/kubernetes/ssl/kubernetes.key \
+  --etcd-servers={% for host in groups['etcd'] %}https://{{ hostvars[host].ansible_hostname }}:2379{% if not loop.last %},{% endif %}{% endfor %} \
+  --event-ttl=1h \
+  --encryption-provider-config=/etc/kubernetes/encryption-config.yaml \
+  --kubelet-certificate-authority=/etc/kubernetes/ssl/ca.crt \
+  --kubelet-client-certificate=/etc/kubernetes/ssl/kubernetes.crt \
+  --kubelet-client-key=/etc/kubernetes/ssl/kubernetes.key \
+  --runtime-config='api/all=true' \
+  --service-account-key-file=/etc/kubernetes/ssl/service-account.crt \
+  --service-account-signing-key-file=/etc/kubernetes/ssl/service-account.key \
+  --service-account-issuer=https://{{ kubernetes_public_address }}:6443 \
+  --service-cluster-ip-range={{ kubernetes.service.cidr }} \
+  --service-node-port-range=30000-32767 \
+  --tls-cert-file=/etc/kubernetes/ssl/kubernetes.crt \
+  --tls-private-key-file=/etc/kubernetes/ssl/kubernetes.key \
+  --v=2
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

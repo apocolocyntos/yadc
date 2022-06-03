@@ -1,0 +1,11 @@
+[Unit]
+Description=Grafana Loki
+Documentation=https://grafana.com/docs/loki/latest
+
+[Service]
+ExecStart=/usr/local/bin/loki -config.file=/etc/loki/config.yaml
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

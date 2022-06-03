@@ -1,0 +1,29 @@
+- name: copy binary
+  copy:
+    src: "{{ work_dir | default(playbook_dir + '/tmp') }}/kubernetes/server/bin/kube-controller-manager"
+    dest: /usr/local/bin/kube-controller-manager
+    owner: root
+    group: root
+    mode: 0755
+  become: true
+
+- name: generate certifciate
+  include_tasks: cert.yml
+
+- name: copy kube-controller-manager.service
+  template:
+    src: templates/kube-controller-manager.service
+    dest: /etc/systemd/system/kube-controller-manager.service
+    owner: root
+    group: root
+    mode: 0644
+  become: true
+  notify: restart kube-controller-manager
+
+- name: start kube-controller-manager.service
+  systemd:
+    name: kube-controller-manager
+    state: started
+    enabled: true
+    daemon_reload: true
+  become: true

@@ -1,0 +1,3 @@
+domain: local
+network_interface: eth1 # eth0
+network_protocol: ipv4 # ipv6

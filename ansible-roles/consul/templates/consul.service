@@ -1,0 +1,12 @@
+[Unit]
+Description=Consul
+After=network.target
+
+[Service]
+Type=simple
+Restart=always
+ExecStart=/usr/local/bin/consul agent --config-format=hcl --config-dir={{ consul.config_dir }}
+User={{ consul.user }}
+
+[Install]
+WantedBy=multi-user.target

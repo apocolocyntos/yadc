@@ -1,0 +1,58 @@
+- name: generate private key
+  openssl_privatekey:
+    path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/kubernetes.key"
+    type: RSA
+    size: 2048
+    state: present
+    mode: 0600
+  delegate_to: localhost
+
+- name: generate csr
+  openssl_csr:
+    path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/kubernetes.csr"
+    privatekey_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/kubernetes.key"
+    common_name: kubernetes
+    organization_name: Kubernetes
+    subject_alt_name:
+      - IP:127.0.0.1
+      - DNS:{{ inventory_hostname }}
+      - DNS:localhost
+      - IP:{{ hostvars[inventory_hostname].ansible_facts[network_interface][network_protocol].address }}
+      - IP:10.32.0.1
+      - DNS:kubernetes
+      - DNS:kubernetes.default
+      - DNS:kubernetes.default.svc
+      - DNS:kubernetes.default.svc.cluster
+      - DNS:kubernetes.svc.cluster.local
+    key_usage:
+      - digitalSignature
+    extended_key_usage:
+      - serverAuth
+      - clientAuth
+    state: present
+    mode: 0600
+  delegate_to: localhost
+
+- name: generate crt
+  openssl_certificate:
+    path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/kubernetes.crt"
+    privatekey_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/kubernetes.key"
+    csr_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/kubernetes.csr"
+    provider: ownca
+    ownca_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/ca.crt"
+    ownca_privatekey_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/ca.key"
+    mode: 0644
+  delegate_to: localhost
+
+- name: copy Kubernetes certifciates
+  copy:
+    src: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/{{ item }}"
+    dest: "/etc/kubernetes/ssl/{{ item }}"
+    owner: "{{ kubernetes.user }}"
+    group: "{{ kubernetes.group }}"
+    mode: 0600
+  become: true
+  with_items:
+    - kubernetes.crt
+    - kubernetes.key
+  notify: restart kube-apiserver

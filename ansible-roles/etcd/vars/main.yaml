@@ -1,0 +1,6 @@
+ansible_hosts_group: etcd
+etcd:
+  version: 3.5.2
+  checksum: sha256:256cad725542d6fd463e81b8a19b86ead4cdfe113f7fb8a1eabc6c32c25d068b
+  user: etcd
+  group: etcd

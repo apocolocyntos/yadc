@@ -1,0 +1,87 @@
+- name: generate intermediate certificate
+  include_role:
+    name: certificates/intermediate
+  vars:
+    service_name: prometheus
+
+- name: create local certificate directory
+  file:
+    path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}"
+    state: directory
+    mode: 0700
+  delegate_to: localhost
+
+#
+# Server Certificate
+#
+
+- name: generate private key
+  openssl_privatekey:
+    path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/node_exporter.key"
+    type: RSA
+    size: 2048
+    state: present
+    mode: 0600
+  delegate_to: localhost
+
+- name: generate csr
+  openssl_csr:
+    path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/node_exporter.csr"
+    privatekey_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/node_exporter.key"
+    common_name: "{{ inventory_hostname }}.{{ domain }}"
+    subject_alt_name:
+      - DNS:{{ inventory_hostname }}
+      - DNS:{{ inventory_hostname }}.{{ domain }}
+      - IP:{{ hostvars[inventory_hostname].ansible_facts[network_interface][network_protocol].address }}
+    key_usage:
+      - digitalSignature
+    extended_key_usage:
+      - serverAuth
+    state: present
+    mode: 0600
+  delegate_to: localhost
+
+- name: generate crt
+  openssl_certificate:
+    path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/node_exporter.crt"
+    privatekey_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/node_exporter.key"
+    csr_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/node_exporter.csr"
+    provider: ownca
+    ownca_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/prometheus-intermediate.crt"
+    ownca_privatekey_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/prometheus-intermediate.key"
+    mode: 0644
+  delegate_to: localhost
+
+- name: create {{ node_exporter.config_dir }}/ssl
+  file:
+    path: "{{ node_exporter.config_dir }}/ssl"
+    state: directory
+    owner: "{{ node_exporter.user }}"
+    group: "{{ node_exporter.group }}"
+    mode: 0700
+  become: true
+
+- name: copy CA certifciates
+  copy:
+    src: "{{ work_dir | default(playbook_dir + '/tmp') }}/prometheus-intermediate.crt"
+    dest: "{{ node_exporter.config_dir }}/ssl/ca.pem"
+    owner: "{{ node_exporter.user }}"
+    group: "{{ node_exporter.group }}"
+    mode: 0600
+  become: true
+  notify: restart node_exporter
+
+- name: copy certifciates
+  copy:
+    src: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/{{ item.src }}"
+    dest: "{{ node_exporter.config_dir }}/ssl/{{ item.dest }}"
+    owner: "{{ node_exporter.user }}"
+    group: "{{ node_exporter.group }}"
+    mode: 0600
+  become: true
+  with_items:
+    - src: "node_exporter.crt"
+      dest: "cert.pem"
+    - src: "node_exporter.key"
+      dest: "key.pem"
+  notify: restart node_exporter

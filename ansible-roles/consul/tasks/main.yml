@@ -1,0 +1,79 @@
+- name: get package
+  get_url:
+    url: https://releases.hashicorp.com/consul/{{ consul.version }}/consul_{{ consul.version }}_linux_amd64.zip
+    dest: "{{ work_dir | default(playbook_dir + '/tmp') }}/consul.zip"
+    checksum: sha256:{{ consul.checksum }}
+  delegate_to: localhost
+  run_once: true
+
+- name: extract package
+  unarchive:
+    src: "{{ work_dir | default(playbook_dir + '/tmp') }}/consul.zip"
+    dest: "{{ work_dir | default(playbook_dir + '/tmp') }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: copy binary
+  copy:
+    src: "{{ work_dir | default(playbook_dir + '/tmp') }}/consul"
+    dest: "{{ consul.bin_dir }}/consul"
+    owner: root
+    group: root
+    mode: 0755
+  become: true
+
+- name: create group {{ consul.group }}
+  group:
+    name: "{{ consul.group }}"
+    system: true
+    state: present
+  become: true
+
+- name: create user {{ consul.user }}
+  user:
+    name: "{{ consul.user }}"
+    group: "{{ consul.group }}"
+    shell: /usr/bin/nologin
+    home: "{{ consul.data_dir }}"
+    create_home: true
+    state: present
+  become: true
+
+- name: create {{ consul.config_dir }}
+  file:
+    path: "{{ consul.config_dir }}"
+    state: directory
+    owner: "{{ consul.user }}"
+    group: "{{ consul.group }}"
+  become: true
+
+- name: generate certifciates
+  include_tasks: certificates.yml
+
+- name: copy config
+  template:
+    src: templates/config.hcl
+    dest: "{{ consul.config_dir }}/config.hcl"
+    owner: "{{ consul.user }}"
+    group: "{{ consul.group }}"
+    mode: 0600
+  become: true
+  notify: restart consul
+
+- name: copy consul.service
+  template:
+    src: templates/consul.service
+    dest: /etc/systemd/system/consul.service
+    owner: root
+    group: root
+    mode: 0644
+  become: true
+  notify: restart consul
+
+- name: enable service
+  systemd:
+    name: consul
+    state: started
+    enabled: true
+    daemon_reload: true
+  become: true

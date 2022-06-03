@@ -1,0 +1,67 @@
+- name: generate private key
+  openssl_privatekey:
+    path: "{{ work_dir | default(playbook_dir + '/tmp') }}/admin.key"
+    type: RSA
+    size: 2048
+    state: present
+    mode: 0600
+  delegate_to: localhost
+  run_once: true
+
+- name: generate csr
+  openssl_csr:
+    path: "{{ work_dir | default(playbook_dir + '/tmp') }}/admin.csr"
+    privatekey_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/admin.key"
+    common_name: "admin"
+    organization_name: "system:masters"
+    key_usage:
+      - digitalSignature
+    extended_key_usage:
+      - serverAuth
+      - clientAuth
+    state: present
+    mode: 0600
+  delegate_to: localhost
+  run_once: true
+
+- name: generate crt
+  openssl_certificate:
+    path: "{{ work_dir | default(playbook_dir + '/tmp') }}/admin.crt"
+    privatekey_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/admin.key"
+    csr_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/admin.csr"
+    provider: ownca
+    ownca_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/ca.crt"
+    ownca_privatekey_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/ca.key"
+    mode: 0644
+  delegate_to: localhost
+  run_once: true
+
+- name: copy Kubernetes certifciates
+  copy:
+    src: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ item }}"
+    dest: "/etc/kubernetes/ssl/{{ item }}"
+    owner: "{{ kubernetes.user }}"
+    group: "{{ kubernetes.group }}"
+    mode: 0600
+  become: true
+  with_items:
+    - admin.crt
+    - admin.key
+  notify: restart kube-apiserver
+
+- name: create /root/.kube
+  file:
+    path: /root/.kube
+    state: directory
+    owner: root
+    group: root
+    mode: 0700
+  become: true
+
+- include_tasks: ../../common/tasks/kubeconfig.yml
+  vars:
+    kubeconfig_dest: /root/.kube/config
+    key_file: "{{ work_dir | default(playbook_dir + '/tmp') }}/admin.key"
+    crt_file: "{{ work_dir | default(playbook_dir + '/tmp') }}/admin.crt"
+    ca_file: "{{ work_dir | default(playbook_dir + '/tmp') }}/ca.crt"
+    notified_handler: restart kube-apiserver

@@ -1,0 +1,10 @@
+grafana:
+  version: 8.5.4
+  checksum: 062abce1489c68c950476d8e3e92481f8ab51f43fa63814daadbc2f94bcfc57b
+  user: grafana
+  group: grafana
+  port: 3000
+  bin_dir: /usr/local/bin
+  config_dir: /etc/grafana
+  data_dir: /var/lib/grafana
+  log_dir: /var/log/grafana

@@ -1,0 +1,107 @@
+- file:
+    state: directory
+    path: /sys/fs/cgroup/systemd
+    owner: root
+    group: root
+    mode: 0755
+  become: true
+
+- mount:
+    path: /sys/fs/cgroup/systemd
+    src: cgroup
+    fstype: cgroup
+    opts: none,name=systemd
+    state: mounted
+    boot: true
+    fstab: /etc/fstab
+  become: true
+
+- name: create download directory
+  file:
+    path: "{{ work_dir | default(playbook_dir + '/tmp') }}"
+    state: directory
+  delegate_to: localhost
+
+- name: download package
+  get_url:
+    url: https://github.com/containerd/containerd/releases/download/v1.6.2/containerd-1.6.2-linux-amd64.tar.gz
+    dest: "{{ work_dir | default(playbook_dir + '/tmp') }}/containerd-1.6.2-linux-amd64.tar.gz"
+    checksum: sha256:3d94f887de5f284b0d6ee61fa17ba413a7d60b4bb27d756a402b713a53685c6a
+  delegate_to: localhost
+  run_once: true
+
+- name: unarchive package
+  unarchive:
+    src: "{{ work_dir | default(playbook_dir + '/tmp') }}/containerd-1.6.2-linux-amd64.tar.gz"
+    dest: "{{ ansible_env.HOME }}"
+
+- name: copy binaries
+  copy:
+    src: "{{ ansible_env.HOME }}/bin/{{ item }}"
+    dest: /usr/local/bin/{{ item }}
+    owner: root
+    group: root
+    mode: 0755
+    remote_src: true
+  with_items:
+    - containerd
+    - containerd-shim
+    - containerd-shim-runc-v1
+    - containerd-shim-runc-v2
+    - containerd-stress
+    - ctr
+  become: true
+  notify: restart containerd
+
+- name: download runc
+  get_url:
+    url: https://github.com/opencontainers/runc/releases/download/v1.1.1/runc.amd64
+    dest: "{{ ansible_env.HOME }}/runc"
+    checksum: sha256:5798c85d2c8b6942247ab8d6830ef362924cd72a8e236e77430c3ab1be15f080
+
+- name: copy binary
+  copy:
+    src: "{{ ansible_env.HOME }}/runc"
+    dest: /usr/local/bin/runc
+    owner: root
+    group: root
+    mode: 0755
+    remote_src: true
+  become: true
+
+- name: copy service
+  template:
+    src: templates/containerd.service
+    dest: /etc/systemd/system/containerd.service
+    owner: root
+    group: root
+    mode: 0644
+  become: true
+  notify: restart containerd
+
+- name: create /etc/containerd
+  file:
+    path: /etc/containerd
+    state: directory
+    owner: "{{ containerd.user }}"
+    group: "{{ containerd.group }}"
+    mode: 0644
+  become: true
+
+- name: copy config
+  template:
+    src: templates/config.toml
+    dest: /etc/containerd/config.toml
+    owner: "{{ containerd.user }}"
+    group: "{{ containerd.group }}"
+    mode: 0600
+  become: true
+  notify: restart containerd
+
+- name: start service
+  systemd:
+    name: containerd
+    state: started
+    enabled: true
+    daemon_reload: true
+  become: true

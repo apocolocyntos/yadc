@@ -1,0 +1,9 @@
+ansible_hosts_group: kubernetes
+kubernetes:
+  user: root
+  group: root
+  cluster:
+    name: kubernetes
+    cidr: 10.0.0.0/16
+  service:
+    cidr: 10.32.0.0/24

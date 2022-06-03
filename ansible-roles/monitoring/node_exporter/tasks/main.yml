@@ -1,0 +1,61 @@
+- name: get node_exporter
+  get_url:
+    url: https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter.version }}/node_exporter-{{ node_exporter.version }}.linux-amd64.tar.gz
+    dest: "{{ work_dir | default(playbook_dir + '/tmp') }}/node_exporter-{{ node_exporter.version }}.linux-amd64.tar.gz"
+  delegate_to: localhost
+  run_once: true
+
+- name: extract archive
+  unarchive:
+    src: "{{ work_dir | default(playbook_dir + '/tmp') }}/node_exporter-{{ node_exporter.version }}.linux-amd64.tar.gz"
+    dest: "{{ work_dir | default(playbook_dir + '/tmp') }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: copy binary
+  copy:
+    src: "{{ work_dir | default(playbook_dir + '/tmp') }}/node_exporter-{{ node_exporter.version }}.linux-amd64/node_exporter"
+    dest: "{{ node_exporter.bin_dir }}/node_exporter"
+    owner: root
+    group: root
+    mode: 0755
+  become: true
+
+- name: create /etc/node_exporter
+  file:
+    path: /etc/node_exporter
+    state: directory
+    owner: "{{ node_exporter.user }}"
+    group: "{{ node_exporter.group }}"
+    mode: 0755
+  become: true
+
+- name: copy config
+  template:
+    src: templates/config.yml
+    dest: /etc/node_exporter/config.yml
+    owner: "{{ node_exporter.user }}"
+    group: "{{ node_exporter.group }}"
+    mode: 0644
+  become: true
+
+- name: generate certificates
+  include_tasks: certificates.yml
+
+- name: copy service
+  template:
+    src: templates/node_exporter.service
+    dest: /etc/systemd/system/node_exporter.service
+    owner: root
+    group: root
+    mode: 0644
+  become: true
+  notify: restart node_exporter
+
+- name: start service
+  systemd:
+    name: node_exporter
+    state: started
+    enabled: true
+    daemon_reload: true
+  become: true

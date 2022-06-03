@@ -1,0 +1,10 @@
+ansible_hosts_group: prometheus
+prometheus:
+  version: 2.36.0
+  checksum: 8ce279468d3a94f54e208027f7db237145119ac3ece2e6011efe795de87ccc04
+  user: prometheus
+  group: prometheus
+  port: 9090
+  bin_dir: /usr/local/bin
+  config_dir: /etc/prometheus
+  data_dir: /var/lib/prometheus

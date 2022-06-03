@@ -1,0 +1,49 @@
+- name: create download directory
+  file:
+    path: "{{ work_dir | default(playbook_dir + '/tmp') }}"
+    state: directory
+  delegate_to: localhost
+
+- name: download package
+  get_url:
+    url: https://github.com/containernetworking/plugins/releases/download/v{{ cni.version }}/cni-plugins-linux-amd64-v{{ cni.version }}.tgz
+    dest: "{{ work_dir | default(playbook_dir + '/tmp') }}/cni-plugins-linux-amd64-v{{ cni.version }}.tgz"
+    checksum: "{{ cni.checksum }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: create /opt/cni/bin
+  file:
+    path: /opt/cni/bin
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+  become: true
+
+- name: unarchive package
+  unarchive:
+    src: "{{ work_dir | default(playbook_dir + '/tmp') }}/cni-plugins-linux-amd64-v{{ cni.version }}.tgz"
+    dest: /opt/cni/bin
+  become: true
+
+- name: create /etc/cni/net.d
+  file:
+    path: /etc/cni/net.d
+    state: directory
+    owner: "{{ cni.user }}"
+    group: "{{ cni.group }}"
+    mode: 0755
+  become: true
+
+- name: copy configurations
+  template:
+    src: templates/{{ item }}.conf
+    dest: /etc/cni/net.d/{{ item }}.conf
+    owner: "{{ cni.user }}"
+    group: "{{ cni.group }}"
+    mode: 0644
+  with_items:
+    - 10-bridge
+    - 99-loopback
+  become: true

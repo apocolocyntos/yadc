@@ -1,0 +1,4 @@
+dependencies:
+  - role: hosts
+  - role: certificates/ca
+  - role: monitoring/promtail

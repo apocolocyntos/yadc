@@ -1,0 +1,48 @@
+- name: generate private key
+  openssl_privatekey:
+    path: "{{ work_dir | default(playbook_dir + '/tmp') }}/kube-proxy.key"
+    type: RSA
+    size: 2048
+    state: present
+    mode: 0600
+  delegate_to: localhost
+  run_once: true
+
+- name: generate csr
+  openssl_csr:
+    path: "{{ work_dir | default(playbook_dir + '/tmp') }}/kube-proxy.csr"
+    privatekey_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/kube-proxy.key"
+    common_name: "system:kube-proxy"
+    organization_name: "system:node-proxier"
+    subject_alt_name:
+      - DNS:"{{ inventory_hostname }}.{{ domain }}"
+      - IP:{{ hostvars[inventory_hostname].ansible_facts[network_interface][network_protocol].address }}
+    key_usage:
+      - digitalSignature
+    extended_key_usage:
+      - serverAuth
+      - clientAuth
+    state: present
+    mode: 0600
+  delegate_to: localhost
+  run_once: true
+
+- name: generate crt
+  openssl_certificate:
+    path: "{{ work_dir | default(playbook_dir + '/tmp') }}/kube-proxy.crt"
+    privatekey_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/kube-proxy.key"
+    csr_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/kube-proxy.csr"
+    provider: ownca
+    ownca_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/ca.crt"
+    ownca_privatekey_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/ca.key"
+    mode: 0644
+  delegate_to: localhost
+  run_once: true
+
+- include_tasks: ../../common/tasks/kubeconfig.yml
+  vars:
+    kubeconfig_dest: /etc/kubernetes/kube-proxy.kubeconfig
+    key_file: "{{ work_dir | default(playbook_dir + '/tmp') }}/kube-proxy.key"
+    crt_file: "{{ work_dir | default(playbook_dir + '/tmp') }}/kube-proxy.crt"
+    ca_file: "{{ work_dir | default(playbook_dir + '/tmp') }}/ca.crt"
+    notified_handler: restart kube-proxy

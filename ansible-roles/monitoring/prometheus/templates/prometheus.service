@@ -1,0 +1,18 @@
+[Unit]
+Description=Prometheus
+Documentation=https://prometheus.io/docs/prometheus/latest/configuration/configuration/
+
+[Service]
+ExecStart={{ prometheus.bin_dir }}/prometheus \
+    --config.file="{{ prometheus.config_dir }}/prometheus.yml" \
+    --web.listen-address="{{ inventory_hostname }}.{{ domain }}:{{ prometheus.port }}" \
+    --web.config.file="{{ prometheus.config_dir }}/web-config.yml" \
+    --storage.tsdb.path="{{ prometheus.data_dir }}/data" \
+    --log.level=debug \
+    --log.format=logfmt
+Restart=on-failure
+RestartSec=5
+User={{ prometheus.user }}
+
+[Install]
+WantedBy=multi-user.target

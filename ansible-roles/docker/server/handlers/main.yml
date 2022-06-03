@@ -1,0 +1,7 @@
+- name: restart dockerd
+  systemd:
+    name: dockerd
+    state: restarted
+    enabled: true
+    daemon_reload: true
+  become: true

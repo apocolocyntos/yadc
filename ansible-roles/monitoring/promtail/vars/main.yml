@@ -1,0 +1,7 @@
+ansible_hosts_group: promtail
+promtail:
+  enabled: true
+  version: 2.5.0
+  checksum: 8da889d768bc9f6aff2e0c9d7f45a86b7eaecce185ccabfc8c3f4a00300a5a84
+  user: root
+  group: root

@@ -1,0 +1,65 @@
+- name: install dependencies
+  package:
+    name: unzip
+    state: present
+  become: true
+
+- name: get promtail
+  get_url:
+    url: https://github.com/grafana/loki/releases/download/v{{ promtail.version }}/promtail-linux-amd64.zip
+    dest: "{{ work_dir | default(playbook_dir + '/tmp') }}/promtail-linux-amd64.zip"
+    checksum: sha256:{{ promtail.checksum }}
+  delegate_to: localhost
+  run_once: true
+
+- name: extract archive
+  unarchive:
+    src: "{{ work_dir | default(playbook_dir + '/tmp') }}/promtail-linux-amd64.zip"
+    dest: "{{ work_dir | default(playbook_dir + '/tmp') }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: copy binary
+  copy:
+    src: "{{ work_dir | default(playbook_dir + '/tmp') }}/promtail-linux-amd64"
+    dest: /usr/local/bin/promtail
+    owner: root
+    group: root
+    mode: 0755
+  become: true
+
+- name: create /etc/promtail
+  file:
+    path: /etc/promtail
+    state: directory
+    owner: "{{ promtail.user }}"
+    group: "{{ promtail.group }}"
+    mode: 0755
+  become: true
+
+- name: copy config
+  template:
+    src: templates/config.yaml
+    dest: /etc/promtail/config.yaml
+    owner: "{{ promtail.user }}"
+    group: "{{ promtail.group }}"
+    mode: 0644
+  become: true
+
+- name: copy service
+  template:
+    src: templates/promtail.service
+    dest: /etc/systemd/system/promtail.service
+    owner: root
+    group: root
+    mode: 0644
+  become: true
+  notify: restart promtail
+
+- name: start service
+  systemd:
+    name: promtail
+    state: started
+    enabled: true
+    daemon_reload: true
+  become: true

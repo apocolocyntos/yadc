@@ -1,0 +1,16 @@
+apiVersion: 1
+datasources:
+{% for host in groups['prometheus'] %}
+  - name: Prometheus - {{ host }}
+    type: prometheus
+    access: proxy
+    url: "https://{{ host }}:9090"
+    jsonData:
+      tlsAuth: true
+      tlsAuthWithCACert: true
+      serverName: {{ hostvars[host].ansible_hostname }}.{{ domain }}
+    secureJsonData:
+      tlsCACert: "{{ ca.stdout | replace('\n', '\\n') }}"
+      tlsClientCert: "{{ cert.stdout | replace('\n', '\\n') }}"
+      tlsClientKey: "{{ key.stdout | replace('\n', '\\n') }}"
+{% endfor %}

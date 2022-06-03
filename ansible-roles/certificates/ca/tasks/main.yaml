@@ -1,0 +1,36 @@
+- name: generate private key
+  openssl_privatekey:
+    path: "{{ work_dir | default(playbook_dir + '/tmp') }}/ca.key"
+    type: RSA
+    size: 4096
+    state: present
+    mode: 0600
+  delegate_to: localhost
+  run_once: true
+
+- name: generate csr
+  openssl_csr:
+    path: "{{ work_dir | default(playbook_dir + '/tmp') }}/ca.csr"
+    privatekey_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/ca.key"
+    common_name: CA
+    basic_constraints:
+      - CA:TRUE
+      - pathlen:1
+    key_usage:
+      - digitalSignature
+      - keyCertSign
+    key_usage_critical: true
+    state: present
+    mode: 0600
+  delegate_to: localhost
+  run_once: true
+
+- name: generate crt
+  openssl_certificate:
+    path: "{{ work_dir | default(playbook_dir + '/tmp') }}/ca.crt"
+    privatekey_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/ca.key"
+    csr_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/ca.csr"
+    provider: selfsigned
+    mode: 0644
+  delegate_to: localhost
+  run_once: true

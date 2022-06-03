@@ -1,0 +1,59 @@
+- name: generate private key
+  openssl_privatekey:
+    path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/kubelet.key"
+    type: RSA
+    size: 2048
+    state: present
+    mode: 0600
+  delegate_to: localhost
+
+- name: generate csr
+  openssl_csr:
+    path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/kubelet.csr"
+    privatekey_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/kubelet.key"
+    common_name: "system:node:{{ inventory_hostname }}"
+    organization_name: "system:nodes"
+    subject_alt_name:
+      - IP:127.0.0.1
+      - DNS:"{{ inventory_hostname }}.{{ domain }}"
+      - DNS:{{ inventory_hostname }}
+    key_usage:
+      - digitalSignature
+    extended_key_usage:
+      - serverAuth
+      - clientAuth
+    state: present
+    mode: 0600
+  delegate_to: localhost
+
+- name: generate crt
+  openssl_certificate:
+    path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/kubelet.crt"
+    privatekey_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/kubelet.key"
+    csr_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/kubelet.csr"
+    provider: ownca
+    ownca_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/ca.crt"
+    ownca_privatekey_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/ca.key"
+    mode: 0644
+  delegate_to: localhost
+
+- name: copy Kubernetes certifciates
+  copy:
+    src: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/{{ item }}"
+    dest: "/etc/kubernetes/ssl/{{ item }}"
+    owner: "{{ kubernetes.user }}"
+    group: "{{ kubernetes.group }}"
+    mode: 0600
+  become: true
+  with_items:
+    - kubelet.key
+    - kubelet.crt
+  notify: restart kubelet
+
+- include_tasks: ../../common/tasks/kubeconfig.yml
+  vars:
+    kubeconfig_dest: /etc/kubernetes/kubelet.kubeconfig
+    key_file: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/kubelet.key"
+    crt_file: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/kubelet.crt"
+    ca_file: "{{ work_dir | default(playbook_dir + '/tmp') }}/ca.crt"
+    notified_handler: restart kubelet

@@ -1,0 +1,12 @@
+- hosts: all
+
+  tasks:
+
+    - name: restart services
+      systemd:
+        name: "{{ item }}"
+        state: restarted
+      with_items:
+        - promtail
+        - node_exporter
+      become: true

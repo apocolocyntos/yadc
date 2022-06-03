@@ -1,0 +1,6 @@
+ansible_hosts_group: loki
+loki:
+  version: 2.5.0
+  checksum: 1b0fe3019b2afb6ec85a05685c369cfd2dfd60c80e99dc7d6f86fec5fd583255
+  user: root
+  group: root

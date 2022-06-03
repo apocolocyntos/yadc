@@ -1,0 +1,4 @@
+dependencies:
+  - role: containerd
+  - role: cni
+  - role: kubernetes/common

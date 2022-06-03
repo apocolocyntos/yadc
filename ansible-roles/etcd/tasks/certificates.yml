@@ -1,0 +1,76 @@
+- name: create local certificate directory
+  file:
+    path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}"
+    state: directory
+    mode: 0700
+  delegate_to: localhost
+
+- name: generate private key
+  openssl_privatekey:
+    path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/etcd.key"
+    type: RSA
+    size: 2048
+    state: present
+    mode: 0600
+  delegate_to: localhost
+
+- name: generate csr
+  openssl_csr:
+    path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/etcd.csr"
+    privatekey_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/etcd.key"
+    common_name: "{{ inventory_hostname }}.{{ domain }}"
+    subject_alt_name:
+      - DNS:{{ inventory_hostname }}
+      - DNS:{{ inventory_hostname }}.{{ domain }}
+      - IP:{{ hostvars[inventory_hostname].ansible_facts[network_interface][network_protocol].address }}
+    key_usage:
+      - digitalSignature
+    extended_key_usage:
+      - serverAuth
+      - clientAuth
+    state: present
+    mode: 0600
+  delegate_to: localhost
+
+- name: generate crt
+  openssl_certificate:
+    path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/etcd.crt"
+    privatekey_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/etcd.key"
+    csr_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/etcd.csr"
+    provider: ownca
+    ownca_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/ca.crt"
+    ownca_privatekey_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/ca.key"
+    mode: 0644
+  delegate_to: localhost
+
+- name: create /etc/etcd/ssl
+  file:
+    path: /etc/etcd/ssl
+    state: directory
+    owner: "{{ etcd.user }}"
+    group: "{{ etcd.group }}"
+    mode: 0700
+  become: true
+
+- name: copy CA certifciates
+  copy:
+    src: "{{ work_dir | default(playbook_dir + '/tmp') }}/ca.crt"
+    dest: /etc/etcd/ssl/ca.pem
+    owner: "{{ etcd.user }}"
+    group: "{{ etcd.group }}"
+    mode: 0600
+  become: true
+  notify: restart etcd
+
+- name: copy certifciates
+  copy:
+    src: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/{{ item.src }}"
+    dest: "/etc/etcd/ssl/{{ item.dest }}"
+    owner: "{{ etcd.user }}"
+    group: "{{ etcd.group }}"
+    mode: 0600
+  become: true
+  with_items:
+    - { src: "etcd.crt", dest: "crt.pem" }
+    - { src: "etcd.key", dest: "key.pem" }
+  notify: restart etcd

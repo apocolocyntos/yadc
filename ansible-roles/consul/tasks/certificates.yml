@@ -1,0 +1,81 @@
+- name: generate intermediate certificate
+  include_role:
+    name: certificates/intermediate
+  vars:
+    service_name: consul
+
+- name: create local certificate directory
+  file:
+    path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}"
+    state: directory
+    mode: 0700
+  run_once: true
+  delegate_to: localhost
+
+- name: generate private key
+  openssl_privatekey:
+    path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/consul.key"
+    type: RSA
+    size: 2048
+    state: present
+    mode: 0600
+  delegate_to: localhost
+
+- name: generate csr
+  openssl_csr:
+    path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/consul.csr"
+    privatekey_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/consul.key"
+    common_name: "{{ inventory_hostname }}.{{ domain }}"
+    subject_alt_name:
+      - DNS:{{ inventory_hostname }}
+    key_usage:
+      - digitalSignature
+    extended_key_usage:
+      - serverAuth
+      - clientAuth
+    state: present
+    mode: 0600
+  delegate_to: localhost
+
+- name: generate crt
+  openssl_certificate:
+    path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/consul.crt"
+    privatekey_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/consul.key"
+    csr_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/consul.csr"
+    provider: ownca
+    ownca_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/consul-intermediate.crt"
+    ownca_privatekey_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/consul-intermediate.key"
+    mode: 0644
+  delegate_to: localhost
+
+- name: create {{ consul.config_dir }}/ssl
+  file:
+    path: "{{ consul.config_dir }}/ssl"
+    state: directory
+    owner: "{{ consul.user }}"
+    group: "{{ consul.group }}"
+    mode: 0700
+  become: true
+
+- name: copy CA certifciates
+  copy:
+    src: "{{ work_dir | default(playbook_dir + '/tmp') }}/consul-intermediate.crt"
+    dest: "{{ consul.config_dir }}/ssl/ca.pem"
+    owner: "{{ consul.user }}"
+    group: "{{ consul.group }}"
+    mode: 0600
+  become: true
+  notify: restart consul
+
+- name: copy certifciates
+  copy:
+    src: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/{{ item.src }}"
+    dest: "{{ consul.config_dir }}/ssl/{{ item.dest }}"
+    owner: "{{ consul.user }}"
+    group: "{{ consul.group }}"
+    mode: 0600
+  become: true
+  with_items:
+    - { src: "consul.crt", dest: "cert.pem" }
+    - { src: "consul.key", dest: "key.pem" }
+  notify: restart consul

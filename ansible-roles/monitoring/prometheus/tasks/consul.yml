@@ -1,0 +1,86 @@
+- name: install dependencies
+  package:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - bash
+    - curl
+  become: true
+
+#
+# Client Certificate
+#
+
+- name: generate private key
+  openssl_privatekey:
+    path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/prometheus-consul-client.key"
+    type: RSA
+    size: 2048
+    state: present
+    mode: 0600
+  when: consul.enabled
+  delegate_to: localhost
+
+- name: generate csr
+  openssl_csr:
+    path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/prometheus-consul-client.csr"
+    privatekey_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/prometheus-consul-client.key"
+    common_name: "{{ inventory_hostname }}.{{ domain }}"
+    key_usage:
+      - digitalSignature
+    extended_key_usage:
+      - clientAuth
+    state: present
+    mode: 0600
+  when: consul.enabled
+  delegate_to: localhost
+
+- name: generate crt
+  openssl_certificate:
+    path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/prometheus-consul-client.crt"
+    privatekey_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/prometheus-consul-client.key"
+    csr_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/prometheus-consul-client.csr"
+    provider: ownca
+    ownca_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/prometheus-intermediate.crt"
+    ownca_privatekey_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/prometheus-intermediate.key"
+    mode: 0644
+  when: consul.enabled
+  delegate_to: localhost
+
+- name: copy CA certifciates
+  copy:
+    src: "{{ work_dir | default(playbook_dir + '/tmp') }}/prometheus-intermediate.crt"
+    dest: "{{ consul.config_dir }}/ssl/prometheus-ca.pem"
+    owner: "{{ consul.user }}"
+    group: "{{ consul.group }}"
+    mode: 0600
+  become: true
+  when: consul.enabled
+  notify: restart consul
+
+- name: copy certifciates
+  copy:
+    src: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/{{ item.src }}"
+    dest: "{{ consul.config_dir }}/ssl/{{ item.dest }}"
+    owner: "{{ consul.user }}"
+    group: "{{ consul.group }}"
+    mode: 0600
+  become: true
+  with_items:
+    - src: "prometheus-consul-client.crt"
+      dest: "prometheus-client.pem"
+    - src: "prometheus-consul-client.key"
+      dest: "prometheus-client-key.pem"
+  when: consul.enabled
+  notify: restart consul
+
+- name: copy consul service definition
+  template:
+    src: templates/consul.hcl
+    dest: "{{ consul.config_dir }}/service-prometheus.hcl"
+    owner: "{{ consul.user }}"
+    group: "{{ consul.group }}"
+    mode: 0644
+  become: true
+  when: consul.enabled
+  notify: restart consul

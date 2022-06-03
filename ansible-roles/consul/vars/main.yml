@@ -1,0 +1,10 @@
+consul:
+  enabled: true
+  version: 1.12.1
+  checksum: 8d138267701fc3502dc6b01beb08ae8fac969022ab867f61bc945af38686ecc3
+  user: consul
+  group: consul
+  datacenter: dc
+  bin_dir: /usr/local/bin
+  config_dir: /etc/consul
+  data_dir: /var/lib/consul

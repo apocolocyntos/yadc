@@ -1,0 +1,25 @@
+# setting /etc/hosts
+- hosts: all
+  roles:
+    - role: hosts
+
+# Loki
+- hosts: loki
+  roles:
+    - role: monitoring/loki
+
+# Prometheus
+- hosts: prometheus
+  roles:
+    - role: monitoring/prometheus
+
+# Grafana
+- hosts: grafana
+  roles:
+    - role: monitoring/grafana
+
+# Prometheus node-exporter/Promtail
+- hosts: all
+  roles:
+    - role: monitoring/node_exporter
+    - role: monitoring/promtail

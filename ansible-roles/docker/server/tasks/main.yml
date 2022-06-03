@@ -1,0 +1,115 @@
+- name: install prerequisites
+  package:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - procps
+    - iptables
+  become: true
+
+#
+# create system user
+#
+
+- name: create group
+  group:
+    name: "{{ docker.group }}"
+    state: present
+    system: true
+  become: true
+
+- name: create user
+  user:
+    name: "{{ docker.user }}"
+    create_home: true
+    group: "{{ docker.group }}"
+    home: "{{ docker.data_dir }}"
+    shell: /usr/bin/nologin
+    state: present
+    system: true
+  become: true
+  when: docker.user != "root"
+
+#
+# get packages
+#
+
+- name: get archive
+  get_url:
+    url: https://download.docker.com/linux/static/stable/x86_64/docker-{{ docker.version }}.tgz
+    dest: "{{ work_dir | default(playbook_dir + '/tmp') }}/docker-{{ docker.version }}.tgz"
+  delegate_to: localhost
+  run_once: true
+
+- name: extract archive
+  unarchive:
+    src: "{{ work_dir | default(playbook_dir + '/tmp') }}/docker-{{ docker.version }}.tgz"
+    dest: "{{ work_dir | default(playbook_dir + '/tmp') }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: copy binaries
+  copy:
+    src: "{{ work_dir | default(playbook_dir + '/tmp') }}/docker/{{ item }}"
+    dest: "{{ docker.bin_dir }}/{{ item }}"
+    owner: root
+    group: root
+    mode: 0755
+  with_items:
+    - containerd
+    - containerd-shim
+    - containerd-shim-runc-v2
+    - ctr
+    - docker
+    - dockerd
+    - docker-init
+    - docker-proxy
+    - runc
+  become: true
+
+- name: create {{ docker.config_dir }}
+  file:
+    path: "{{ docker.config_dir }}"
+    state: directory
+    owner: "{{ docker.user }}"
+    group: "{{ docker.group }}"
+    mode: 0755
+  become: true
+
+- name: generate certificates
+  include_tasks: certs.yml
+
+- name: copy daemon.json
+  template:
+    src: templates/daemon.json
+    dest: "{{ docker.config_dir }}/daemon.json"
+    owner: "{{ docker.user }}"
+    group: "{{ docker.group }}"
+    mode: 0755
+  become: true
+  notify: restart dockerd
+
+- name: copy dockerd.service
+  template:
+    src: templates/dockerd.service
+    dest: /lib/systemd/system/dockerd.service
+    owner: root
+    group: root
+    mode: 0755
+  become: true
+  notify: restart dockerd
+
+- name: start service
+  systemd:
+    enabled: true
+    name: dockerd
+    state: started
+    daemon_reload: true
+  become: true
+
+- name: add {{ ansible_env.USER }} to docker
+  user:
+    append: true
+    groups: docker
+    name: "{{ ansible_env.USER }}"
+  become: true

@@ -1,0 +1,4 @@
+.vagrant
+fact.d
+tmp
+.kube

@@ -1,0 +1,11 @@
+[Unit]
+Description=Grafana node_exporter
+Documentation=https://grafana.com/docs/node_exporter/latest
+
+[Service]
+ExecStart=/usr/local/bin/node_exporter --web.config=/etc/node_exporter/config.yml
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

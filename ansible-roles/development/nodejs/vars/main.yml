@@ -1,0 +1,6 @@
+nodejs:
+  user: nodejs
+  group: nodejs
+  home: /opt/nodejs
+  version: 16.15.0
+  checksum: sha256:ebdf4dc9d992d19631f0931cca2fc33c6d0d382543639bc6560d31d5060a8372

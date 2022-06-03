@@ -1,0 +1,14 @@
+[Unit]
+Description=grafana
+Documentation=https://grafana.com/
+
+[Service]
+ExecStart={{ grafana.bin_dir }}/grafana-server \
+    -config {{ grafana.config_dir }}/config.ini \
+    -homepath {{ grafana.data_dir }}
+Restart=on-failure
+RestartSec=5
+User={{ grafana.user }}
+
+[Install]
+WantedBy=multi-user.target

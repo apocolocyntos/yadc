@@ -1,0 +1,126 @@
+- name: create group {{ grafana.group }}
+  group:
+    name: "{{ grafana.group }}"
+    system: true
+    state: present
+  become: true
+
+- name: create user {{ grafana.user }}
+  user:
+    name: "{{ grafana.user }}"
+    group: "{{ grafana.group }}"
+    shell: /usr/bin/nologin
+    home: "{{ grafana.data_dir }}"
+    create_home: false
+    state: present
+  become: true
+
+- name: create directories
+  file:
+    state: directory
+    path: "{{ item }}"
+    owner: "{{ grafana.user }}"
+    group: "{{ grafana.group }}"
+    mode: 0700
+  with_items:
+    - "{{ grafana.config_dir }}"
+    - "{{ grafana.data_dir }}"
+    - "{{ grafana.log_dir }}"
+  become: true
+
+- name: get grafana
+  get_url:
+    url: https://dl.grafana.com/oss/release/grafana-{{ grafana.version }}.linux-amd64.tar.gz
+    dest: "/tmp/grafana-{{ grafana.version }}.linux-amd64.tar.gz"
+    checksum: sha256:{{ grafana.checksum }}
+
+- name: extract archive
+  unarchive:
+    src: "/tmp/grafana-{{ grafana.version }}.linux-amd64.tar.gz"
+    dest: "/tmp"
+    list_files: true
+    remote_src: true
+
+- name: copy binaries
+  copy:
+    src: "/tmp/grafana-{{ grafana.version }}/bin/{{ item }}"
+    dest: "{{ grafana.bin_dir }}"
+    owner: root
+    group: root
+    mode: 0755
+    remote_src: true
+  with_items:
+    - grafana-server
+    - grafana-cli
+  become: true
+  notify: restart grafana
+
+- name: copy conf
+  copy:
+    src: "/tmp/grafana-{{ grafana.version }}/conf/provisioning"
+    dest: "{{ grafana.config_dir }}"
+    owner: "{{ grafana.user }}"
+    group: "{{ grafana.group }}"
+    mode: 0700
+    remote_src: true
+  become: true
+  notify: restart grafana
+
+- name: copy config.ini
+  template:
+    src: templates/config.ini
+    dest: "{{ grafana.config_dir }}/config.ini"
+    owner: "{{ grafana.user }}"
+    group: "{{ grafana.group }}"
+    mode: 0700
+  become: true
+  notify: restart grafana
+
+- name: copy sources
+  copy:
+    src: "/tmp/grafana-{{ grafana.version }}/{{ item }}"
+    dest: "{{ grafana.data_dir }}"
+    owner: "{{ grafana.user }}"
+    group: "{{ grafana.group }}"
+    mode: 0700
+    remote_src: true
+  with_items:
+    - conf
+    - plugins-bundled
+    - public
+  become: true
+  notify: restart grafana
+
+- name: copy service
+  template:
+    src: templates/grafana.service
+    dest: /etc/systemd/system/grafana.service
+    owner: root
+    group: root
+    mode: 0644
+  become: true
+  notify: restart grafana
+
+- name: copy datasources
+  template:
+    src: templates/datasources/{{ item }}.yaml
+    dest: "{{ grafana.config_dir }}/provisioning/datasources/{{ item }}.yaml"
+    owner: "{{ grafana.user }}"
+    group: "{{ grafana.group }}"
+    mode: 0600
+  with_items:
+    - loki
+  become: true
+  notify: restart grafana
+
+- name: configure prometheus datasources
+  include_tasks: prom.yml
+  when: groups['prometheus'] is defined and groups['prometheus'] | length > 0
+
+- name: start service
+  systemd:
+    name: grafana
+    state: started
+    enabled: true
+    daemon_reload: true
+  become: true

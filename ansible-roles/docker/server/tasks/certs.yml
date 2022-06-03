@@ -1,0 +1,105 @@
+- name: generate private key
+  openssl_privatekey:
+    path: "{{ work_dir | default(playbook_dir + '/tmp') }}/docker-intermediate.key"
+    type: RSA
+    size: 2048
+    state: present
+    mode: 0600
+  delegate_to: localhost
+  run_once: true
+
+- name: generate csr
+  openssl_csr:
+    path: "{{ work_dir | default(playbook_dir + '/tmp') }}/docker-intermediate.csr"
+    privatekey_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/docker-intermediate.key"
+    common_name: "Docker Intermediate CA"
+    basic_constraints:
+      - CA:TRUE
+      - pathlen:0
+    key_usage:
+      - digitalSignature
+      - keyCertSign
+    state: present
+    mode: 0600
+  delegate_to: localhost
+  run_once: true
+
+- name: generate crt
+  openssl_certificate:
+    path: "{{ work_dir | default(playbook_dir + '/tmp') }}/docker-intermediate.crt"
+    privatekey_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/docker-intermediate.key"
+    csr_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/docker-intermediate.csr"
+    provider: ownca
+    ownca_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/ca.crt"
+    ownca_privatekey_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/ca.key"
+    mode: 0644
+  delegate_to: localhost
+  run_once: true
+
+- name: create /etc/docker/ssl/
+  file:
+    path: "/etc/docker/ssl/"
+    state: directory
+    owner: "{{ docker.user }}"
+    group: "{{ docker.group }}"
+    mode: 0700
+  become: true
+
+#
+# create server certificate
+#
+
+- name: generate private key
+  openssl_privatekey:
+    path: "{{ work_dir | default(playbook_dir + '/tmp') }}/docker-server-{{ inventory_hostname }}.key"
+    type: RSA
+    size: 2048
+    state: present
+    mode: 0600
+  delegate_to: localhost
+
+- name: generate csr
+  openssl_csr:
+    path: "{{ work_dir | default(playbook_dir + '/tmp') }}/docker-server-{{ inventory_hostname }}.csr"
+    privatekey_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/docker-server-{{ inventory_hostname }}.key"
+    common_name: "{{ inventory_hostname }}.{{ domain }}"
+    subject_alt_name:
+      - DNS:{{ inventory_hostname }}
+      - DNS:{{ inventory_hostname }}.{{ domain }}
+      - IP:{{ hostvars[inventory_hostname].ansible_facts[network_interface][network_protocol].address }}
+      - IP:127.0.0.1
+    key_usage:
+      - digitalSignature
+    extended_key_usage:
+      - serverAuth
+    state: present
+    mode: 0600
+  delegate_to: localhost
+
+- name: generate crt
+  openssl_certificate:
+    path: "{{ work_dir | default(playbook_dir + '/tmp') }}/docker-server-{{ inventory_hostname }}.crt"
+    privatekey_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/docker-server-{{ inventory_hostname }}.key"
+    csr_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/docker-server-{{ inventory_hostname }}.csr"
+    provider: ownca
+    ownca_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/docker-intermediate.crt"
+    ownca_privatekey_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/docker-intermediate.key"
+    mode: 0644
+  delegate_to: localhost
+
+- name: copy docker certifciates
+  copy:
+    src: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ item.src }}"
+    dest: "/etc/docker/ssl/{{ item.dest }}"
+    owner: "{{ docker.user }}"
+    group: "{{ docker.group }}"
+    mode: 0600
+  become: true
+  with_items:
+    - src: docker-intermediate.crt
+      dest: ca.pem
+    - src: docker-server-{{ inventory_hostname }}.crt
+      dest: cert.pem
+    - src: docker-server-{{ inventory_hostname }}.key
+      dest: key.pem
+  notify: restart dockerd
