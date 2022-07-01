@@ -1,12 +1,12 @@
 - name: create group {{ grafana.group }}
-  group:
+  ansible.builtin.group:
     name: "{{ grafana.group }}"
     system: true
     state: present
   become: true
 
 - name: create user {{ grafana.user }}
-  user:
+  ansible.builtin.user:
     name: "{{ grafana.user }}"
     group: "{{ grafana.group }}"
     shell: /usr/bin/nologin
@@ -16,7 +16,7 @@
   become: true
 
 - name: create directories
-  file:
+  ansible.builtin.file:
     state: directory
     path: "{{ item }}"
     owner: "{{ grafana.user }}"
@@ -29,7 +29,7 @@
   become: true
 
 - name: get grafana
-  get_url:
+  ansible.builtin.get_url:
     url: https://dl.grafana.com/oss/release/grafana-{{ grafana.version }}.linux-amd64.tar.gz
     dest: "/tmp/grafana-{{ grafana.version }}.linux-amd64.tar.gz"
     checksum: sha256:{{ grafana.checksum }}
@@ -42,7 +42,7 @@
     remote_src: true
 
 - name: copy binaries
-  copy:
+  ansible.builtin.copy:
     src: "/tmp/grafana-{{ grafana.version }}/bin/{{ item }}"
     dest: "{{ grafana.bin_dir }}"
     owner: root
@@ -56,7 +56,7 @@
   notify: restart grafana
 
 - name: copy conf
-  copy:
+  ansible.builtin.copy:
     src: "/tmp/grafana-{{ grafana.version }}/conf/provisioning"
     dest: "{{ grafana.config_dir }}"
     owner: "{{ grafana.user }}"
@@ -67,7 +67,7 @@
   notify: restart grafana
 
 - name: copy config.ini
-  template:
+  ansible.builtin.template:
     src: templates/config.ini
     dest: "{{ grafana.config_dir }}/config.ini"
     owner: "{{ grafana.user }}"
@@ -77,7 +77,7 @@
   notify: restart grafana
 
 - name: copy sources
-  copy:
+  ansible.builtin.copy:
     src: "/tmp/grafana-{{ grafana.version }}/{{ item }}"
     dest: "{{ grafana.data_dir }}"
     owner: "{{ grafana.user }}"
@@ -92,7 +92,7 @@
   notify: restart grafana
 
 - name: copy service
-  template:
+  ansible.builtin.template:
     src: templates/grafana.service
     dest: /etc/systemd/system/grafana.service
     owner: root
@@ -102,7 +102,7 @@
   notify: restart grafana
 
 - name: copy datasources
-  template:
+  ansible.builtin.template:
     src: templates/datasources/{{ item }}.yaml
     dest: "{{ grafana.config_dir }}/provisioning/datasources/{{ item }}.yaml"
     owner: "{{ grafana.user }}"
@@ -118,7 +118,7 @@
   when: groups['prometheus'] is defined and groups['prometheus'] | length > 0
 
 - name: start service
-  systemd:
+  ansible.builtin.systemd:
     name: grafana
     state: started
     enabled: true

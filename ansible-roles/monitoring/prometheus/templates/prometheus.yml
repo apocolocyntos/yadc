@@ -24,7 +24,7 @@ scrape_configs:
     scheme: https
     tls_config:
       ca_file: "{{ prometheus.config_dir }}/ssl/ca.pem"
-      cert_file: "{{ prometheus.config_dir }}/ssl/cert-client.pem"
+      cert_ansible.builtin.file: "{{ prometheus.config_dir }}/ssl/cert-client.pem"
       key_file: "{{ prometheus.config_dir }}/ssl/key-client.pem"
     static_configs:
       - targets: ["{{ inventory_hostname }}.{{ domain }}:{{ prometheus.port }}"]

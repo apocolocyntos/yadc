@@ -6,7 +6,7 @@
     KUBECONFIG: "{{ ansible_env.PWD }}/.kube/config"
 
   tasks:
-    - name: Ensure the myapp Namespace exists.
+    - name: Create Ansible namespace
       kubernetes.core.k8s:
         api_version: v1
         kind: Namespace

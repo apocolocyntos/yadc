@@ -8,7 +8,7 @@
   become: true
 
 - name: get archive
-  get_url:
+  ansible.builtin.get_url:
     url: https://go.dev/dl/go1.18.1.linux-amd64.tar.gz
     dest: "{{ work_dir | default(playbook_dir + '/tmp') }}/go1.18.1.linux-amd64.tar.gz"
     checksum: sha256:b3b815f47ababac13810fc6021eb73d65478e0b2db4b09d348eefad9581a2334
@@ -20,7 +20,7 @@
     remote_src: true
 
 - name: register go in {{ ansible_env.HOME }}/.bashrc
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: "{{ ansible_env.HOME }}/.bashrc"
     line: "{{ line }}"
     state: present

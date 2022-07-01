@@ -1,12 +1,12 @@
 - name: create group
-  group:
+  ansible.builtin.group:
     name: "{{ etcd.group }}"
     state: present
     system: true
   become: true
 
 - name: create user
-  user:
+  ansible.builtin.user:
     name: "{{ etcd.user }}"
     create_home: true
     group: "{{ etcd.group }}"
@@ -17,7 +17,7 @@
   become: true
 
 - name: set permission for /var/lib/etcd
-  file:
+  ansible.builtin.file:
     path: /var/lib/etcd
     state: directory
     owner: "{{ etcd.user }}"
@@ -26,14 +26,14 @@
   become: true
 
 - name: create download directory
-  file:
+  ansible.builtin.file:
     path: "{{ work_dir | default(playbook_dir + '/tmp') }}"
     state: directory
   delegate_to: localhost
   run_once: true
 
 - name: download package
-  get_url:
+  ansible.builtin.get_url:
     url: https://github.com/etcd-io/etcd/releases/download/v{{ etcd.version }}/etcd-v{{ etcd.version }}-linux-amd64.tar.gz
     dest: "{{ work_dir | default(playbook_dir + '/tmp') }}/etcd-v{{ etcd.version }}-linux-amd64.tar.gz"
     checksum: "{{ etcd.checksum }}"
@@ -46,7 +46,7 @@
     dest: "{{ ansible_env.HOME }}"
 
 - name: copy binaries
-  copy:
+  ansible.builtin.copy:
     src: "{{ ansible_env.HOME }}/etcd-v{{ etcd.version }}-linux-amd64/{{ item }}"
     dest: /usr/local/bin/{{ item }}
     mode: 0755
@@ -59,7 +59,7 @@
   notify: restart etcd
 
 - name: copy systemd template
-  template:
+  ansible.builtin.template:
     src: templates/etcd.service
     dest: /etc/systemd/system/etcd.service
     owner: root
@@ -68,10 +68,10 @@
   become: true
   notify: restart etcd
 
-- include_tasks: tasks/certificates.yml
+- ansible.builtin.include_tasks: tasks/certificates.yml
 
 - name: enable etcd service
-  systemd:
+  ansible.builtin.systemd:
     name: etcd
     daemon_reload: true
     enabled: true

@@ -1,5 +1,5 @@
 - name: copy binary
-  copy:
+  ansible.builtin.copy:
     src: "{{ work_dir | default(playbook_dir + '/tmp') }}/kubernetes/server/bin/kube-apiserver"
     dest: /usr/local/bin/kube-apiserver
     owner: root
@@ -8,7 +8,7 @@
   become: true
 
 - name: create /etc/kubernetes/ssl
-  file:
+  ansible.builtin.file:
     path: /etc/kubernetes/ssl
     state: directory
     owner: "{{ kubernetes.user }}"
@@ -16,7 +16,7 @@
   become: true
 
 - name: copy CA certificate
-  copy:
+  ansible.builtin.copy:
     src: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ item }}"
     dest: /etc/kubernetes/ssl/{{ item }}
     owner: "{{ kubernetes.user }}"
@@ -38,7 +38,7 @@
   include_tasks: cert-sa.yml
 
 - name: copy kube-apiserver.service
-  template:
+  ansible.builtin.template:
     src: templates/kube-apiserver.service
     dest: /etc/systemd/system/kube-apiserver.service
     owner: root
@@ -48,7 +48,7 @@
   notify: restart kube-apiserver
 
 - name: copy encryption-config.yaml
-  template:
+  ansible.builtin.template:
     src: templates/encryption-config.yaml
     dest: /etc/kubernetes/encryption-config.yaml
     owner: root
@@ -58,7 +58,7 @@
   notify: restart kube-apiserver
 
 - name: enable kube-apiserver
-  systemd:
+  ansible.builtin.systemd:
     name: kube-apiserver
     state: started
     enabled: true

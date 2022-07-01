@@ -1,0 +1,23 @@
+- name: Create download directory
+  ansible.builtin.file:
+    path: "{{ work_dir | default(playbook_dir + '/tmp') }}"
+    state: directory
+  delegate_to: localhost
+  run_once: true
+
+- name: Download binary
+  ansible.builtin.get_url:
+    url: https://github.com/k3s-io/k3s/releases/download/v1.25.4%2Bk3s1/k3s
+    dest: "{{ work_dir | default(playbook_dir + '/tmp') }}/k3s"
+    checksum: sha256:744e136a50a61095ae95cb0fe60f60b81da563cde583a3bedb3f2e0e6394efc2
+  delegate_to: localhost
+  run_once: true
+
+- name: Copy binary
+  ansible.builtin.copy:
+    src: "{{ work_dir | default(playbook_dir + '/tmp') }}/k3s"
+    dest: /usr/local/bin/.
+    owner: root
+    group: root
+    mode: 0755
+  become: true

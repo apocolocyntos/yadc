@@ -1,11 +1,11 @@
 - name: create download directory
-  file:
+  ansible.builtin.file:
     path: "{{ work_dir | default(playbook_dir + '/tmp') }}"
     state: directory
   delegate_to: localhost
 
 - name: download package
-  get_url:
+  ansible.builtin.get_url:
     url: https://github.com/containernetworking/plugins/releases/download/v{{ cni.version }}/cni-plugins-linux-amd64-v{{ cni.version }}.tgz
     dest: "{{ work_dir | default(playbook_dir + '/tmp') }}/cni-plugins-linux-amd64-v{{ cni.version }}.tgz"
     checksum: "{{ cni.checksum }}"
@@ -13,7 +13,7 @@
   run_once: true
 
 - name: create /opt/cni/bin
-  file:
+  ansible.builtin.file:
     path: /opt/cni/bin
     state: directory
     owner: root
@@ -27,8 +27,8 @@
     dest: /opt/cni/bin
   become: true
 
-- name: create /etc/cni/net.d
-  file:
+- name: Create /etc/cni/net.d
+  ansible.builtin.file:
     path: /etc/cni/net.d
     state: directory
     owner: "{{ cni.user }}"
@@ -36,8 +36,8 @@
     mode: 0755
   become: true
 
-- name: copy configurations
-  template:
+- name: Copy configurations
+  ansible.builtin.template:
     src: templates/{{ item }}.conf
     dest: /etc/cni/net.d/{{ item }}.conf
     owner: "{{ cni.user }}"

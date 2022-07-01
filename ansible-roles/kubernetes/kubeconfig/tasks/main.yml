@@ -1,11 +1,11 @@
 - name: create directory {{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}
-  file:
+  ansible.builtin.file:
     path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}"
     state: directory
     mode: 0700
 
 - name: generate private key
-  openssl_privatekey:
+  community.crypto.openssl_privatekey:
     path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/kube-admin.key"
     type: RSA
     size: 2048
@@ -13,7 +13,7 @@
     mode: 0600
 
 - name: generate csr
-  openssl_csr:
+  community.crypto.openssl_csr:
     path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/kube-admin.csr"
     privatekey_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/kube-admin.key"
     common_name: "admin"
@@ -27,7 +27,7 @@
     mode: 0600
 
 - name: generate crt
-  openssl_certificate:
+  community.crypto.x509_certificate:
     path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/kube-admin.crt"
     privatekey_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/kube-admin.key"
     csr_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/kube-admin.csr"
@@ -37,7 +37,7 @@
     mode: 0644
 
 - name: create directory {{ ansible_env.PWD }}/.kube
-  file:
+  ansible.builtin.file:
     path: "{{ ansible_env.PWD }}/.kube"
     state: directory
     mode: 0700
@@ -52,7 +52,7 @@
   register: ca
 
 - name: copy kubeconfig
-  template:
+  ansible.builtin.template:
     src: ../../common/templates/kubeconfig
     dest: "{{ ansible_env.PWD }}/.kube/config"
     mode: 0600

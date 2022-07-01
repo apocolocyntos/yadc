@@ -1,11 +1,11 @@
 - name: generate intermediate certificate
-  include_role:
+  ansible.builtin.include_role:
     name: certificates/intermediate
   vars:
     service_name: prometheus
 
 - name: create local certificate directory
-  file:
+  ansible.builtin.file:
     path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}"
     state: directory
     mode: 0700
@@ -16,7 +16,7 @@
 #
 
 - name: generate private key
-  openssl_privatekey:
+  community.crypto.openssl_privatekey:
     path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/node_exporter.key"
     type: RSA
     size: 2048
@@ -25,7 +25,7 @@
   delegate_to: localhost
 
 - name: generate csr
-  openssl_csr:
+  community.crypto.openssl_csr:
     path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/node_exporter.csr"
     privatekey_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/node_exporter.key"
     common_name: "{{ inventory_hostname }}.{{ domain }}"
@@ -42,7 +42,7 @@
   delegate_to: localhost
 
 - name: generate crt
-  openssl_certificate:
+  community.crypto.x509_certificate:
     path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/node_exporter.crt"
     privatekey_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/node_exporter.key"
     csr_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/node_exporter.csr"
@@ -53,7 +53,7 @@
   delegate_to: localhost
 
 - name: create {{ node_exporter.config_dir }}/ssl
-  file:
+  ansible.builtin.file:
     path: "{{ node_exporter.config_dir }}/ssl"
     state: directory
     owner: "{{ node_exporter.user }}"
@@ -62,7 +62,7 @@
   become: true
 
 - name: copy CA certifciates
-  copy:
+  ansible.builtin.copy:
     src: "{{ work_dir | default(playbook_dir + '/tmp') }}/prometheus-intermediate.crt"
     dest: "{{ node_exporter.config_dir }}/ssl/ca.pem"
     owner: "{{ node_exporter.user }}"
@@ -72,7 +72,7 @@
   notify: restart node_exporter
 
 - name: copy certifciates
-  copy:
+  ansible.builtin.copy:
     src: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/{{ item.src }}"
     dest: "{{ node_exporter.config_dir }}/ssl/{{ item.dest }}"
     owner: "{{ node_exporter.user }}"

@@ -1,5 +1,5 @@
 - name: restart dockerd
-  systemd:
+  ansible.builtin.systemd:
     name: dockerd
     state: restarted
     enabled: true

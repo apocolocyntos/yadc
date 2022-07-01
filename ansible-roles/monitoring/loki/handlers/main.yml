@@ -1,5 +1,5 @@
 - name: restart loki
-  systemd:
+  ansible.builtin.systemd:
     name: loki
     state: restarted
     enabled: true

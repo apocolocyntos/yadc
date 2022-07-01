@@ -2,7 +2,7 @@
   include_tasks: cert.yml
 
 - name: copy binaries
-  copy:
+  ansible.builtin.copy:
     src: "{{ work_dir | default(playbook_dir + '/tmp') }}/kubernetes/server/bin/kube-scheduler"
     dest: /usr/local/bin/kube-scheduler
     owner: root
@@ -11,7 +11,7 @@
   become: true
 
 - name: create /etc/kubernetes/config
-  file:
+  ansible.builtin.file:
     path: /etc/kubernetes/config
     state: directory
     owner: "{{ kubernetes.user }}"
@@ -20,7 +20,7 @@
   become: true
 
 - name: copy kube-scheduler.yaml
-  template:
+  ansible.builtin.template:
     src: templates/kube-scheduler.yaml
     dest: /etc/kubernetes/config/kube-scheduler.yaml
     owner: "{{ kubernetes.user }}"
@@ -30,7 +30,7 @@
   notify: restart kube-scheduler
 
 - name: copy kube-scheduler.service
-  template:
+  ansible.builtin.template:
     src: templates/kube-scheduler.service
     dest: /etc/systemd/system/kube-scheduler.service
     owner: root
@@ -40,7 +40,7 @@
   notify: restart kube-scheduler
 
 - name: start service
-  systemd:
+  ansible.builtin.systemd:
     name: kube-scheduler
     state: started
     enabled: true

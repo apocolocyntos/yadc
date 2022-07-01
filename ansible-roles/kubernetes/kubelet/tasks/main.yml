@@ -2,7 +2,7 @@
   include_tasks: cert.yml
 
 - name: copy binaries
-  copy:
+  ansible.builtin.copy:
     src: "{{ work_dir | default(playbook_dir + '/tmp') }}/kubernetes/server/bin/kubelet"
     dest: /usr/local/bin/kubelet
     owner: root
@@ -11,7 +11,7 @@
   become: true
 
 - name: copy kubelet-config.yaml
-  template:
+  ansible.builtin.template:
     src: templates/kubelet-config.yaml
     dest: /etc/kubernetes/kubelet-config.yaml
     owner: "{{ kubernetes.user }}"
@@ -21,7 +21,7 @@
   notify: restart kubelet
 
 - name: copy kubelet.service
-  template:
+  ansible.builtin.template:
     src: templates/kubelet.service
     dest: /etc/systemd/system/kubelet.service
     owner: "{{ kubernetes.user }}"
@@ -30,7 +30,7 @@
   notify: restart kubelet
 
 - name: enabled kubelet.service
-  systemd:
+  ansible.builtin.systemd:
     name: kubelet
     state: started
     enabled: true

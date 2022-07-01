@@ -1,5 +1,5 @@
 - name: create {{ work_dir | default(plabook_dir + '/tmp') }}
-  file:
+  ansible.builtin.file:
     path: "{{ work_dir | default(playbook_dir + '/tmp') }}"
     state: directory
   delegate_to: localhost

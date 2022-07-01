@@ -5,7 +5,7 @@
   become: true
 
 - name: get loki
-  get_url:
+  ansible.builtin.get_url:
     url: https://github.com/grafana/loki/releases/download/v{{ loki.version }}/loki-linux-amd64.zip
     dest: "{{ work_dir | default(playbook_dir + '/tmp') }}/loki-linux-amd64.zip"
   delegate_to: localhost
@@ -19,7 +19,7 @@
   run_once: true
 
 - name: copy binary
-  copy:
+  ansible.builtin.copy:
     src: "{{ work_dir | default(playbook_dir + '/tmp') }}/loki-linux-amd64"
     dest: /usr/local/bin/loki
     owner: root
@@ -28,7 +28,7 @@
   become: true
 
 - name: create /etc/loki
-  file:
+  ansible.builtin.file:
     path: /etc/loki
     state: directory
     owner: "{{ loki.user }}"
@@ -37,7 +37,7 @@
   become: true
 
 - name: copy config
-  template:
+  ansible.builtin.template:
     src: templates/config.yaml
     dest: /etc/loki/config.yaml
     owner: "{{ loki.user }}"
@@ -46,7 +46,7 @@
   become: true
 
 - name: copy service
-  template:
+  ansible.builtin.template:
     src: templates/loki.service
     dest: /etc/systemd/system/loki.service
     owner: root
@@ -56,7 +56,7 @@
   notify: restart loki
 
 - name: start service
-  systemd:
+  ansible.builtin.systemd:
     name: loki
     state: started
     enabled: true

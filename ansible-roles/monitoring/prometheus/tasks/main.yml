@@ -1,12 +1,12 @@
 - name: create group {{ prometheus.group }}
-  group:
+  ansible.builtin.group:
     name: "{{ prometheus.group }}"
     system: true
     state: present
   become: true
 
 - name: create user {{ prometheus.user }}
-  user:
+  ansible.builtin.user:
     name: "{{ prometheus.user }}"
     group: "{{ prometheus.group }}"
     shell: /usr/bin/nologin
@@ -16,7 +16,7 @@
   become: true
 
 - name: create directories
-  file:
+  ansible.builtin.file:
     state: directory
     path: "{{ item }}"
     owner: "{{ prometheus.user }}"
@@ -28,7 +28,7 @@
   become: true
 
 - name: get prometheus
-  get_url:
+  ansible.builtin.get_url:
     url: https://github.com/prometheus/prometheus/releases/download/v{{ prometheus.version }}/prometheus-{{ prometheus.version }}.linux-amd64.tar.gz
     dest: "{{ work_dir | default(playbook_dir + '/tmp') }}/prometheus-{{ prometheus.version }}.linux-amd64.tar.gz"
     checksum: sha256:{{ prometheus.checksum }}
@@ -43,7 +43,7 @@
   run_once: true
 
 - name: copy binary
-  copy:
+  ansible.builtin.copy:
     src: "{{ work_dir | default(playbook_dir + '/tmp') }}/prometheus-{{ prometheus.version }}.linux-amd64/{{ item }}"
     dest: /usr/local/bin/{{ item }}
     owner: root
@@ -56,7 +56,7 @@
   notify: restart prometheus
 
 - name: copy config
-  template:
+  ansible.builtin.template:
     src: templates/{{ item.src }}
     dest: "{{ prometheus.config_dir }}/{{ item.dest }}"
     owner: "{{ prometheus.user }}"
@@ -74,7 +74,7 @@
   include_tasks: certificates.yml
 
 - name: copy service
-  template:
+  ansible.builtin.template:
     src: templates/prometheus.service
     dest: /etc/systemd/system/prometheus.service
     owner: root
@@ -84,7 +84,7 @@
   notify: restart prometheus
 
 - name: start service
-  systemd:
+  ansible.builtin.systemd:
     name: prometheus
     state: started
     enabled: true

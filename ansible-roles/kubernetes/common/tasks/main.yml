@@ -1,18 +1,18 @@
 - name: create download directory
-  file:
+  ansible.builtin.file:
     path: "{{ work_dir | default(playbook_dir + '/tmp') }}"
     state: directory
   delegate_to: localhost
   run_once: true
 
 - name: create node directory
-  file:
+  ansible.builtin.file:
     path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}"
     state: directory
   delegate_to: localhost
 
 - name: download package
-  get_url:
+  ansible.builtin.get_url:
     url: https://dl.k8s.io/v1.23.5/kubernetes-server-linux-amd64.tar.gz
     dest: "{{ work_dir | default(playbook_dir + '/tmp') }}/kubernetes-server-linux-amd64.tar.gz"
     checksum: sha512:063ad74fb1463ee7a7bf4fb746eef1e02980c170cfa89c93444bee0841a84133bdbe91035f6608ece15096fec3e0c9aa50ebdc2b15ce589d86e2f07d10a1d747
@@ -27,7 +27,7 @@
   run_once: true
 
 - name: copy binaries
-  copy:
+  ansible.builtin.copy:
     src: "{{ work_dir | default(playbook_dir + '/tmp') }}/kubernetes/server/bin/{{ item }}"
     dest: /usr/local/bin/{{ item }}
     owner: root
@@ -43,7 +43,7 @@
   become: true
 
 - name: create /etc/kubernetes
-  file:
+  ansible.builtin.file:
     path: /etc/kubernetes
     state: directory
     owner: "{{ kubernetes.user }}"
@@ -52,7 +52,7 @@
   become: true
 
 - name: create /etc/kubernetes/ssl
-  file:
+  ansible.builtin.file:
     path: /etc/kubernetes/ssl
     state: directory
     owner: "{{ kubernetes.user }}"
@@ -61,7 +61,7 @@
   become: true
 
 - name: copy certifciate
-  copy:
+  ansible.builtin.copy:
     src: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ item }}"
     dest: "/etc/kubernetes/ssl/{{ item }}"
     owner: "{{ kubernetes.user }}"
@@ -73,7 +73,7 @@
     - ca.key
 
 - name: create /var/lib/kubernetes
-  file:
+  ansible.builtin.file:
     path: /var/lib/kubernetes
     state: directory
     owner: "{{ kubernetes.user }}"

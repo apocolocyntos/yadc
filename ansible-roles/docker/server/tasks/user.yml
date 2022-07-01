@@ -3,7 +3,7 @@
 #
 
 - name: generate private key
-  openssl_privatekey:
+  community.crypto.openssl_privatekey:
     path: "{{ work_dir | default(playbook_dir + '/tmp') }}/docker-client-{{ inventory_hostname }}.key"
     type: RSA
     size: 2048
@@ -12,7 +12,7 @@
   delegate_to: localhost
 
 - name: generate csr
-  openssl_csr:
+  community.crypto.openssl_csr:
     path: "{{ work_dir | default(playbook_dir + '/tmp') }}/docker-client-{{ inventory_hostname }}.csr"
     privatekey_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/docker-client-{{ inventory_hostname }}.key"
     common_name: "{{ inventory_hostname }}.{{ domain }}"
@@ -25,7 +25,7 @@
   delegate_to: localhost
 
 - name: generate crt
-  openssl_certificate:
+  community.crypto.x509_certificate:
     path: "{{ work_dir | default(playbook_dir + '/tmp') }}/docker-client-{{ inventory_hostname }}.crt"
     privatekey_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/docker-client-{{ inventory_hostname }}.key"
     csr_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/docker-client-{{ inventory_hostname }}.csr"
@@ -36,7 +36,7 @@
   delegate_to: localhost
 
 - name: copy meta.json
-  template:
+  ansible.builtin.template:
     src: templates/meta.json
     dest: "{{ ansible_env.HOME }}/.docker/contexts/meta.json"
     owner: "{{ ansible_env.USER }}"
@@ -44,7 +44,7 @@
   become: true
 
 - name: copy docker certifciates
-  copy:
+  ansible.builtin.copy:
     src: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ item.src }}"
     dest: "{{ ansible_env.HOME }}/.docker/{{ item.dest }}"
     owner: "{{ ansible_env.USER }}"

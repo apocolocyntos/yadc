@@ -1,18 +1,18 @@
 - name: generate intermediate certificate
-  include_role:
+  ansible.builtin.include_role:
     name: certificates/intermediate
   vars:
     service_name: prometheus
 
 - name: create local certificate directory
-  file:
+  ansible.builtin.file:
     path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}"
     state: directory
     mode: 0700
   delegate_to: localhost
 
 - name: generate private key
-  openssl_privatekey:
+  community.crypto.openssl_privatekey:
     path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/grafana-prometheus-client.key"
     type: RSA
     size: 2048
@@ -22,7 +22,7 @@
   register: key
 
 - name: generate csr
-  openssl_csr:
+  community.crypto.openssl_csr:
     path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/grafana-prometheus-client.csr"
     privatekey_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/grafana-prometheus-client.key"
     common_name: prometheus - client
@@ -35,7 +35,7 @@
   delegate_to: localhost
 
 - name: generate crt
-  openssl_certificate:
+  community.crypto.x509_certificate:
     path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/grafana-prometheus-client.crt"
     privatekey_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/grafana-prometheus-client.key"
     csr_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/grafana-prometheus-client.csr"
@@ -58,7 +58,7 @@
   delegate_to: localhost
 
 - name: copy datasources
-  template:
+  ansible.builtin.template:
     src: templates/datasources/prometheus.yaml
     dest: "{{ grafana.config_dir }}/provisioning/datasources/prometheus.yaml"
     owner: "{{ grafana.user }}"

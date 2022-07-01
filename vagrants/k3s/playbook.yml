@@ -1,0 +1,9 @@
+- hosts: k3s
+  roles:
+    - role: hosts
+    - role: monitoring/promtail
+    - role: monitoring/loki
+    - role: monitoring/grafana
+    - role: k3s/server
+      vars:
+        container_runtime: "containerd"

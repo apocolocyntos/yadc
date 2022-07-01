@@ -1,5 +1,5 @@
 - name: generate private key
-  openssl_privatekey:
+  community.crypto.openssl_privatekey:
     path: "{{ work_dir | default(playbook_dir + '/tmp') }}/admin.key"
     type: RSA
     size: 2048
@@ -9,7 +9,7 @@
   run_once: true
 
 - name: generate csr
-  openssl_csr:
+  community.crypto.openssl_csr:
     path: "{{ work_dir | default(playbook_dir + '/tmp') }}/admin.csr"
     privatekey_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/admin.key"
     common_name: "admin"
@@ -25,7 +25,7 @@
   run_once: true
 
 - name: generate crt
-  openssl_certificate:
+  community.crypto.x509_certificate:
     path: "{{ work_dir | default(playbook_dir + '/tmp') }}/admin.crt"
     privatekey_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/admin.key"
     csr_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/admin.csr"
@@ -37,7 +37,7 @@
   run_once: true
 
 - name: copy Kubernetes certifciates
-  copy:
+  ansible.builtin.copy:
     src: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ item }}"
     dest: "/etc/kubernetes/ssl/{{ item }}"
     owner: "{{ kubernetes.user }}"
@@ -50,7 +50,7 @@
   notify: restart kube-apiserver
 
 - name: create /root/.kube
-  file:
+  ansible.builtin.file:
     path: /root/.kube
     state: directory
     owner: root
@@ -58,7 +58,7 @@
     mode: 0700
   become: true
 
-- include_tasks: ../../common/tasks/kubeconfig.yml
+- ansible.builtin.include_tasks: ../../common/tasks/kubeconfig.yml
   vars:
     kubeconfig_dest: /root/.kube/config
     key_file: "{{ work_dir | default(playbook_dir + '/tmp') }}/admin.key"

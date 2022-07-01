@@ -1,5 +1,5 @@
 - name: restart kube-apiserver
-  systemd:
+  ansible.builtin.systemd:
     name: kube-apiserver
     state: restarted
     daemon_reload: true

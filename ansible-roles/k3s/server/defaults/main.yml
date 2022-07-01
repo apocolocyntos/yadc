@@ -1,0 +1,9 @@
+k3s:
+  cluster:
+    cidr: 10.42.0.0/16
+  disabled_services:
+    # - coredns
+    - servicelb
+    - traefik
+    # - local-storage
+    # - metrics-server
