@@ -1,6 +1,6 @@
 grafana:
-  version: 8.5.4
-  checksum: 062abce1489c68c950476d8e3e92481f8ab51f43fa63814daadbc2f94bcfc57b
+  version: 9.0.2
+  checksum: 50dd7927c1313e47a30f531d0e3f145297c485666865a97a6c936427dd8a55fd
   user: grafana
   group: grafana
   port: 3000

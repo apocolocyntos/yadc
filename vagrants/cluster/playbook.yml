@@ -1,25 +1,29 @@
-# setting /etc/hosts
-- hosts: all
-  roles:
-    - role: hosts
+# # setting /etc/hosts
+# - hosts: all
+#   roles:
+#     - role: hosts
 
-# Loki
-- hosts: loki
-  roles:
-    - role: monitoring/loki
+# # Loki
+# - hosts: loki
+#   roles:
+#     - role: monitoring/loki
 
-# Prometheus
-- hosts: prometheus
-  roles:
-    - role: monitoring/prometheus
+# # Prometheus
+# - hosts: prometheus
+#   roles:
+#     - role: monitoring/prometheus
 
-# Grafana
-- hosts: grafana
-  roles:
-    - role: monitoring/grafana
+# # Grafana
+# - hosts: grafana
+#   roles:
+#     - role: monitoring/grafana
 
-# Prometheus node-exporter/Promtail
-- hosts: all
+# # Prometheus node-exporter/Promtail
+# - hosts: all
+#   roles:
+#     - role: monitoring/node_exporter
+#     - role: monitoring/promtail
+
+- hosts: node-4
   roles:
-    - role: monitoring/node_exporter
-    - role: monitoring/promtail
+    - role: cicd/github-runner
