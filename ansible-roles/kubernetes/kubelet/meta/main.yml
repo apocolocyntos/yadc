@@ -1,6 +1,6 @@
 dependencies:
   - role: containerd
-  - role: cni
+  - role: cni/common
     vars:
-      cni_cluster_cidr: kubernetes.cluster.cidr
+      cni_cluster_cidr: "{{ kubernetes_cluster_cidr }}"
   - role: kubernetes/common

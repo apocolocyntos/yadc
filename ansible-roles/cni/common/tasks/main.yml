@@ -1,3 +1,10 @@
+- name: Install iptables
+  package:
+    name: iptables
+    state: present
+    update_cache: true
+  become: true
+
 - name: create download directory
   ansible.builtin.file:
     path: "{{ work_dir | default(playbook_dir + '/tmp') }}"
@@ -47,3 +54,4 @@
     - 10-bridge
     - 99-loopback
   become: true
+  notify: Restart containerd

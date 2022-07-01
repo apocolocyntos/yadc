@@ -1,1 +1,4 @@
 kubernetes_public_address: 127.0.0.1
+kubernetes_cluster_name: kubernetes
+kubernetes_cluster_cidr: 10.0.0.0/16
+kubernetes_service_cidr: 10.32.0.0/24

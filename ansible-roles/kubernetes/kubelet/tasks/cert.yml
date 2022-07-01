@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 - name: Generate private key
+=======
+- name: generate private key
+>>>>>>> 6b0a996 (dev)
   community.crypto.openssl_privatekey:
     path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/kubelet.key"
     type: RSA
@@ -7,7 +11,11 @@
     mode: 0600
   delegate_to: localhost
 
+<<<<<<< HEAD
 - name: Generate csr
+=======
+- name: generate csr
+>>>>>>> 6b0a996 (dev)
   community.crypto.openssl_csr:
     path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/kubelet.csr"
     privatekey_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/kubelet.key"
@@ -26,7 +34,11 @@
     mode: 0600
   delegate_to: localhost
 
+<<<<<<< HEAD
 - name: Generate crt
+=======
+- name: generate crt
+>>>>>>> 6b0a996 (dev)
   community.crypto.x509_certificate:
     path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/kubelet.crt"
     privatekey_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/kubelet.key"
@@ -37,7 +49,11 @@
     mode: 0644
   delegate_to: localhost
 
+<<<<<<< HEAD
 - name: Copy Kubernetes certifciates
+=======
+- name: copy Kubernetes certifciates
+>>>>>>> 6b0a996 (dev)
   ansible.builtin.copy:
     src: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/{{ item }}"
     dest: "/etc/kubernetes/ssl/{{ item }}"

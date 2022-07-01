@@ -1,17 +1,60 @@
+<<<<<<< HEAD
 - name: Create download directory
+=======
+- name: create download directory
+>>>>>>> 6b0a996 (dev)
   ansible.builtin.file:
     path: "{{ work_dir | default(playbook_dir + '/tmp') }}"
     state: directory
   delegate_to: localhost
   run_once: true
 
+<<<<<<< HEAD
 - name: Create node directory
+=======
+- name: create node directory
+>>>>>>> 6b0a996 (dev)
   ansible.builtin.file:
     path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}"
     state: directory
   delegate_to: localhost
 
+<<<<<<< HEAD
 - name: Create /etc/kubernetes
+=======
+- name: download package
+  ansible.builtin.get_url:
+    url: https://dl.k8s.io/v{{ kubernetes.version }}/kubernetes-server-linux-amd64.tar.gz
+    dest: "{{ work_dir | default(playbook_dir + '/tmp') }}/kubernetes-server-linux-amd64.tar.gz"
+    checksum: "{{ kubernetes.checksum }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: extract package
+  unarchive:
+    src: "{{ work_dir | default(playbook_dir + '/tmp') }}/kubernetes-server-linux-amd64.tar.gz"
+    dest: "{{ work_dir | default(playbook_dir + '/tmp') }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: copy binaries
+  ansible.builtin.copy:
+    src: "{{ work_dir | default(playbook_dir + '/tmp') }}/kubernetes/server/bin/{{ item }}"
+    dest: /usr/local/bin/{{ item }}
+    owner: root
+    group: root
+    mode: 0755
+  with_items:
+    - apiextensions-apiserver
+    - kube-aggregator
+    - kubectl-convert
+    - kube-log-runner
+    - kubeadm
+    - mounter
+  become: true
+
+- name: create /etc/kubernetes
+>>>>>>> 6b0a996 (dev)
   ansible.builtin.file:
     path: /etc/kubernetes
     state: directory
@@ -20,7 +63,11 @@
     mode: 0755
   become: true
 
+<<<<<<< HEAD
 - name: Create /etc/kubernetes/ssl
+=======
+- name: create /etc/kubernetes/ssl
+>>>>>>> 6b0a996 (dev)
   ansible.builtin.file:
     path: /etc/kubernetes/ssl
     state: directory
@@ -29,7 +76,11 @@
     mode: 0700
   become: true
 
+<<<<<<< HEAD
 - name: Copy certifciate
+=======
+- name: copy certifciate
+>>>>>>> 6b0a996 (dev)
   ansible.builtin.copy:
     src: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ item }}"
     dest: "/etc/kubernetes/ssl/{{ item }}"
@@ -41,7 +92,11 @@
     - ca.crt
     - ca.key
 
+<<<<<<< HEAD
 - name: Create /var/lib/kubernetes
+=======
+- name: create /var/lib/kubernetes
+>>>>>>> 6b0a996 (dev)
   ansible.builtin.file:
     path: /var/lib/kubernetes
     state: directory
