@@ -24,20 +24,22 @@
 
 - name: download package
   ansible.builtin.get_url:
-    url: https://github.com/containerd/containerd/releases/download/v1.6.2/containerd-1.6.2-linux-amd64.tar.gz
-    dest: "{{ work_dir | default(playbook_dir + '/tmp') }}/containerd-1.6.2-linux-amd64.tar.gz"
-    checksum: sha256:3d94f887de5f284b0d6ee61fa17ba413a7d60b4bb27d756a402b713a53685c6a
+    url: https://github.com/containerd/containerd/releases/download/v{{ containerd.version }}/containerd-{{ containerd.version }}-linux-amd64.tar.gz
+    dest: "{{ work_dir | default(playbook_dir + '/tmp') }}/containerd-{{ containerd.version }}-linux-amd64.tar.gz"
+    checksum: "{{ containerd.checksum }}"
   delegate_to: localhost
   run_once: true
 
 - name: unarchive package
   unarchive:
-    src: "{{ work_dir | default(playbook_dir + '/tmp') }}/containerd-1.6.2-linux-amd64.tar.gz"
-    dest: "{{ ansible_env.HOME }}"
+    src: "{{ work_dir | default(playbook_dir + '/tmp') }}/containerd-{{ containerd.version }}-linux-amd64.tar.gz"
+    dest: "{{ work_dir | default(playbook_dir + '/tmp') }}"
+  delegate_to: localhost
+  run_once: true
 
 - name: copy binaries
   ansible.builtin.copy:
-    src: "{{ ansible_env.HOME }}/bin/{{ item }}"
+    src: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ item }}/bin"
     dest: /usr/local/bin/{{ item }}
     owner: root
     group: root
@@ -55,18 +57,18 @@
 
 - name: download runc
   ansible.builtin.get_url:
-    url: https://github.com/opencontainers/runc/releases/download/v{{ containerd.version }}/runc.amd64
-    dest: "{{ ansible_env.HOME }}/runc"
-    checksum: "{{ containerd.checksum }}"
+    url: https://github.com/opencontainers/runc/releases/download/v{{ containerd.runc.version }}/runc.amd64
+    dest: "{{ work_dir | default(playbook_dir + '/tmp') }}/runc"
+    checksum: "{{ containerd.runc.checksum }}"
+  delegate_to: localhost
 
 - name: copy binary
   ansible.builtin.copy:
-    src: "{{ ansible_env.HOME }}/runc"
+    src: "{{ work_dir | default(playbook_dir + '/tmp') }}/runc"
     dest: /usr/local/bin/runc
     owner: root
     group: root
     mode: 0755
-    remote_src: true
   become: true
 
 - name: copy service

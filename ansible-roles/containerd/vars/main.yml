@@ -1,5 +1,8 @@
 containerd:
   user: root
   group: root
+  version: 1.6.2
+  checksum: sha256:3d94f887de5f284b0d6ee61fa17ba413a7d60b4bb27d756a402b713a53685c6a
+runc:
   version: 1.1.4
   checksum: sha256:db772be63147a4e747b4fe286c7c16a2edc4a8458bd3092ea46aaee77750e8ce
