@@ -22,7 +22,7 @@
   become: true
 
 - name: unarchive package
-  unarchive:
+  ansible.builtin.unarchive:
     src: "{{ work_dir | default(playbook_dir + '/tmp') }}/cni-plugins-linux-amd64-v{{ cni.version }}.tgz"
     dest: /opt/cni/bin
   become: true

@@ -13,7 +13,7 @@
   run_once: true
 
 - name: extract archive
-  unarchive:
+  ansible.builtin.unarchive:
     src: "{{ work_dir | default(playbook_dir + '/tmp') }}/promtail-linux-amd64.zip"
     dest: "{{ work_dir | default(playbook_dir + '/tmp') }}"
   delegate_to: localhost

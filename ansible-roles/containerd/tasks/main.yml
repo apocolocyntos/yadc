@@ -31,7 +31,7 @@
   run_once: true
 
 - name: unarchive package
-  unarchive:
+  ansible.builtin.unarchive:
     src: "{{ work_dir | default(playbook_dir + '/tmp') }}/containerd-{{ containerd.version }}-linux-amd64.tar.gz"
     dest: "{{ work_dir | default(playbook_dir + '/tmp') }}"
   delegate_to: localhost
@@ -39,7 +39,7 @@
 
 - name: copy binaries
   ansible.builtin.copy:
-    src: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ item }}/bin"
+    src: "{{ work_dir | default(playbook_dir + '/tmp') }}/bin/{{ item }}"
     dest: /usr/local/bin/{{ item }}
     owner: root
     group: root
@@ -57,9 +57,9 @@
 
 - name: download runc
   ansible.builtin.get_url:
-    url: https://github.com/opencontainers/runc/releases/download/v{{ containerd.runc.version }}/runc.amd64
+    url: https://github.com/opencontainers/runc/releases/download/v{{ runc.version }}/runc.amd64
     dest: "{{ work_dir | default(playbook_dir + '/tmp') }}/runc"
-    checksum: "{{ containerd.runc.checksum }}"
+    checksum: "{{ runc.checksum }}"
   delegate_to: localhost
 
 - name: copy binary

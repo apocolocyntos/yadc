@@ -14,7 +14,7 @@
     checksum: sha256:b3b815f47ababac13810fc6021eb73d65478e0b2db4b09d348eefad9581a2334
 
 - name: unarchive
-  unarchive:
+  ansible.builtin.unarchive:
     src: "{{ work_dir | default(playbook_dir + '/tmp') }}/go1.18.1.linux-amd64.tar.gz"
     dest: "{{ golang.goroot }}"
     remote_src: true

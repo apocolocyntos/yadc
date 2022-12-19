@@ -20,7 +20,7 @@
   run_once: true
 
 - name: extract package
-  unarchive:
+  ansible.builtin.unarchive:
     src: "{{ work_dir | default(playbook_dir + '/tmp') }}/kubernetes-server-linux-amd64.tar.gz"
     dest: "{{ work_dir | default(playbook_dir + '/tmp') }}"
   delegate_to: localhost

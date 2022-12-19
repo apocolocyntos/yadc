@@ -35,7 +35,7 @@
     checksum: sha256:{{ grafana.checksum }}
 
 - name: extract archive
-  unarchive:
+  ansible.builtin.unarchive:
     src: "/tmp/grafana-{{ grafana.version }}.linux-amd64.tar.gz"
     dest: "/tmp"
     list_files: true
