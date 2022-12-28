@@ -1,0 +1,22 @@
+- name: Create download directory
+  ansible.builtin.file:
+    path: "{{ work_dir | default(playbook_dir + '/tmp') }}"
+    state: directory
+  delegate_to: localhost
+
+- name: Download package
+  ansible.builtin.get_url:
+    url: https://github.com/kubernetes-sigs/cri-tools/releases/download/v{{ crictl.version }}/crictl-v{{ crictl.version }}-linux-amd64.tar.gz
+    dest: "{{ work_dir | default(playbook_dir + '/tmp') }}/crictl-v{{ crictl.version }}-linux-amd64.tar.gz"
+    checksum: "{{ crictl.checksum }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: Unarchive package
+  ansible.builtin.unarchive:
+    src: "{{ work_dir | default(playbook_dir + '/tmp') }}/crictl-v{{ crictl.version }}-linux-amd64.tar.gz"
+    dest: /usr/local/bin
+    owner: root
+    group: root
+    mode: 0755
+  become: true
