@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 - name: Restart kubelet
-=======
-- name: restart kubelet
->>>>>>> 6b0a996 (dev)
   ansible.builtin.systemd:
     name: kubelet
     state: restarted
