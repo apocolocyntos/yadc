@@ -44,7 +44,6 @@
     owner: root
     group: root
     mode: 0755
-    remote_src: true
   with_items:
     - containerd
     - containerd-shim
@@ -53,7 +52,7 @@
     - containerd-stress
     - ctr
   become: true
-  notify: restart containerd
+  notify: Restart containerd
 
 - name: download runc
   ansible.builtin.get_url:
@@ -79,7 +78,7 @@
     group: root
     mode: 0644
   become: true
-  notify: restart containerd
+  notify: Restart containerd
 
 - name: create /etc/containerd
   ansible.builtin.file:
@@ -98,7 +97,7 @@
     group: "{{ containerd.group }}"
     mode: 0600
   become: true
-  notify: restart containerd
+  notify: Restart containerd
 
 - name: start service
   ansible.builtin.systemd:

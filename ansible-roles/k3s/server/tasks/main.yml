@@ -6,7 +6,7 @@
 
 - name: Install CNI
   ansible.builtin.include_role:
-    role: cni
+    role: cni/common
   vars:
     cni_cluster_cidr: "{{ k3s.cluster.cidr }}"
   when: container_runtime is defined and container_runtime == "containerd"
@@ -52,6 +52,10 @@
     enabled: true
     daemon_reload: true
   become: true
+
+- name: Wait for /etc/rancher/k3s/k3s.yaml
+  ansible.builtin.wait_for:
+    path: /etc/rancher/k3s/k3s.yaml
 
 - name: Replace API endpoint
   ansible.builtin.replace:

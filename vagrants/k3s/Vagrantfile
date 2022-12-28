@@ -29,6 +29,7 @@ Vagrant.configure("2") do |config|
           ansible.groups = {
             "all:vars"   => {
               "domain" => "yadc.local",
+              "network_interface" => "eth1"
             },
             "nodes"    => ["node-[1:#{N}]"],
             "k3s"      => ["node-[1:#{N}]"],
