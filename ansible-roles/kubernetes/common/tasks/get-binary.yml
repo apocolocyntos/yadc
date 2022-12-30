@@ -1,0 +1,16 @@
+- name: Download package
+  ansible.builtin.get_url:
+    url: https://storage.googleapis.com/kubernetes-release/release/v{{ version }}/bin/linux/amd64/{{ binary }}
+    dest: "{{ work_dir | default(playbook_dir + '/tmp') }}"
+    # checksum: "{{ checksum }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: Copy binary
+  ansible.builtin.copy:
+    src: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ binary }}"
+    dest: /usr/local/bin/{{ binary }}
+    owner: root
+    group: root
+    mode: 0755
+  become: true
