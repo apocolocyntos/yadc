@@ -1,2 +1,3 @@
 kubelet:
   version: 1.26.0
+  checksum: sha256:b64949fe696c77565edbe4100a315b6bf8f0e2325daeb762f7e865f16a6e54b5

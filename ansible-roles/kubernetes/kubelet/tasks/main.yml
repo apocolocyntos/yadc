@@ -1,46 +1,36 @@
 - name: Generate certificate
   include_tasks: cert.yml
 
-- name: Download package
-  ansible.builtin.get_url:
-    url: https://storage.googleapis.com/kubernetes-release/release/v{{ kubelet.version }}/bin/linux/amd64/kubelet
-    dest: "{{ work_dir | default(playbook_dir + '/tmp') }}"
-    # checksum: "{{ crictl.checksum }}"
-  delegate_to: localhost
-  run_once: true
+- name: Get binary
+  include_tasks: ../../common/tasks/get-binary.yml
+  vars:
+    binary: kubelet
+    version: "{{ kubelet.version }}"
+    checksum: "{{ kubelet.checksum }}"
 
-# - name: Copy binaries
-#   ansible.builtin.copy:
-#     src: "{{ work_dir | default(playbook_dir + '/tmp') }}/kubelet"
-#     dest: /usr/local/bin/kubelet
-#     owner: root
-#     group: root
-#     mode: 0755
-#   become: true
+- name: Copy kubelet-config.yaml
+  ansible.builtin.template:
+    src: templates/kubelet-config.yaml
+    dest: /etc/kubernetes/kubelet-config.yaml
+    owner: "{{ kubernetes.user }}"
+    group: "{{ kubernetes.group }}"
+    mode: 0600
+  become: true
+  notify: Restart kubelet
 
-# - name: Copy kubelet-config.yaml
-#   ansible.builtin.template:
-#     src: templates/kubelet-config.yaml
-#     dest: /etc/kubernetes/kubelet-config.yaml
-#     owner: "{{ kubernetes.user }}"
-#     group: "{{ kubernetes.group }}"
-#     mode: 0600
-#   become: true
-#   notify: Restart kubelet
+- name: Copy kubelet.service
+  ansible.builtin.template:
+    src: templates/kubelet.service
+    dest: /etc/systemd/system/kubelet.service
+    owner: "{{ kubernetes.user }}"
+    group: "{{ kubernetes.group }}"
+  become: true
+  notify: Restart kubelet
 
-# - name: Copy kubelet.service
-#   ansible.builtin.template:
-#     src: templates/kubelet.service
-#     dest: /etc/systemd/system/kubelet.service
-#     owner: "{{ kubernetes.user }}"
-#     group: "{{ kubernetes.group }}"
-#   become: true
-#   notify: Restart kubelet
-
-# - name: Enabled kubelet.service
-#   ansible.builtin.systemd:
-#     name: kubelet
-#     state: started
-#     enabled: true
-#     daemon_reload: true
-#   become: true
+- name: Enabled kubelet.service
+  ansible.builtin.systemd:
+    name: kubelet
+    state: started
+    enabled: true
+    daemon_reload: true
+  become: true

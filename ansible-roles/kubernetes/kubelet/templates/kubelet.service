@@ -7,10 +7,8 @@ Requires=containerd.service
 [Service]
 ExecStart=/usr/local/bin/kubelet \
   --config=/etc/kubernetes/kubelet-config.yaml \
-  --container-runtime=remote \
   --container-runtime-endpoint=unix:///var/run/containerd/containerd.sock \
   --kubeconfig=/etc/kubernetes/kubelet.kubeconfig \
-  --register-node=true \
   --v=2
 Restart=on-failure
 RestartSec=5

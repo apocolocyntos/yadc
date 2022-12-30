@@ -2,18 +2,18 @@
   ansible.builtin.get_url:
     url: https://storage.googleapis.com/kubernetes-release/release/v{{ kubeadm.version }}/bin/linux/amd64/kubeadm
     dest: "{{ work_dir | default(playbook_dir + '/tmp') }}"
-    # checksum: "{{ crictl.checksum }}"
+    checksum: "{{ kubeadm.checksum }}"
   delegate_to: localhost
   run_once: true
 
-# - name: Copy binaries
-#   ansible.builtin.copy:
-#     src: "{{ work_dir | default(playbook_dir + '/tmp') }}/kubeadm"
-#     dest: /usr/local/bin/kubeadm
-#     owner: root
-#     group: root
-#     mode: 0755
-#   become: true
+- name: Copy binaries
+  ansible.builtin.copy:
+    src: "{{ work_dir | default(playbook_dir + '/tmp') }}/kubeadm"
+    dest: /usr/local/bin/kubeadm
+    owner: root
+    group: root
+    mode: 0755
+  become: true
 
 # - name: Copy kubeadm-config.yaml
 #   ansible.builtin.template:

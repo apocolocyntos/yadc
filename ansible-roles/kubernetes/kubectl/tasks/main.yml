@@ -1,8 +1,6 @@
-- name: copy binaries
-  ansible.builtin.copy:
-    src: "{{ work_dir | default(playbook_dir + '/tmp') }}/kubernetes/server/bin/kubectl"
-    dest: /usr/local/bin/kubectl
-    owner: root
-    group: root
-    mode: 0755
-  become: true
+- name: Get binary
+  include_tasks: ../../common/tasks/get-binary.yml
+  vars:
+    binary: kubectl
+    version: "{{ kubectl.version }}"
+    checksum: "{{ kubectl.checksum }}"
