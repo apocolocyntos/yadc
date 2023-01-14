@@ -4,16 +4,3 @@
     state: directory
   delegate_to: localhost
   run_once: true
-
-- name: install acl for remote privilege escalation
-  package:
-    name: acl
-    state: present
-    update_cache: true
-  become: true
-
-- name: install python3-selinux to get selinux status
-  package:
-    name: python3-selinux
-    state: present
-  become: true

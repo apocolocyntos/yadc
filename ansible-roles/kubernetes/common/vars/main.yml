@@ -4,3 +4,4 @@ kubernetes:
   group: root
   version: 1.26.0
   checksum: sha512:55de8adfe4d98826cf5f55007b8dbb63cd42fc898b399cd2c74d6c4818f2fbad1de4bd7cba2a94f8edc5a13a6297816691e62ffd0113428d23b8e7592d9d2eb6
+  bin_dir: /opt/kubernetes/bin

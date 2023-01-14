@@ -1,22 +1,54 @@
-- name: Generate certificate
-  include_tasks: cert.yml
+# - name: Generate certificate
+#   include_tasks: cert.yml
 
-- name: Get binary
-  include_tasks: ../../common/tasks/get-binary.yml
-  vars:
-    binary: kubelet
-    version: "{{ kubelet.version }}"
-    checksum: "{{ kubelet.checksum }}"
+# - name: Copy kubelet-config.yaml
+#   ansible.builtin.template:
+#     src: templates/kubelet-config.yaml
+#     dest: /etc/kubernetes/kubelet-config.yaml
+#     owner: "{{ kubernetes.user }}"
+#     group: "{{ kubernetes.group }}"
+#     mode: 0600
+#   become: true
+#   notify: Restart kubelet
 
-- name: Copy kubelet-config.yaml
-  ansible.builtin.template:
-    src: templates/kubelet-config.yaml
-    dest: /etc/kubernetes/kubelet-config.yaml
+- name: Enable modules
+  ansible.builtin.copy:
+    content: |
+      overlay
+      br_netfilter
+    dest: /etc/modules-load.d/50-kubernetes.conf
+    owner: root
+    group: root
+    mode: 0644
+  become: true
+
+- name: Add overlay module
+  community.general.modprobe:
+    name: 8021q
+    state: present
+  become: true
+
+- name: Add br_netfilter module
+  community.general.modprobe:
+    name: br_netfilter
+    state: present
+  become: true
+
+- ansible.posix.sysctl:
+    name: net.ipv4.ip_forward
+    value: '1'
+    sysctl_set: yes
+    state: present
+    reload: yes
+
+- name: Copy binary
+  ansible.builtin.copy:
+    src: "{{ work_dir | default(playbook_dir + '/tmp') }}/kubernetes/server/bin/kubelet"
+    dest: "{{ kubernetes.bin_dir }}/kubelet"
     owner: "{{ kubernetes.user }}"
     group: "{{ kubernetes.group }}"
-    mode: 0600
+    mode: 0755
   become: true
-  notify: Restart kubelet
 
 - name: Copy kubelet.service
   ansible.builtin.template:

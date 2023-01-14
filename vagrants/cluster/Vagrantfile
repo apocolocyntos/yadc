@@ -13,33 +13,28 @@ Vagrant.configure("2") do |config|
     libvirt.memory = memory
   end
 
-  config.vm.provider :virtualbox do |virtualbox|
-    virtualbox.cpus = cpus
-    virtualbox.memory = memory
-  end
-
   N = 4
   (1..N).each do |i|
     config.vm.define "node-#{i}" do |node|
       node.vm.network "private_network", 
         ip: "192.168.56.#{i}0"
-      if i == N
-        node.vm.provision "ansible" do |ansible|
-          ansible.playbook = "playbook.yml"
-          ansible.groups = {
-            "all:vars"   => {
-              "domain" => "yadc.local",
-              "network_interface" => "eth1"
-            },
-            "nodes"      => ["node-[1:4]"],
-            "etcd"       => ["node-2:4"],
-            "prometheus" => ["node-[2:3]"],
-            "loki"       => ["node-[3:4]"],
-            "grafana"    => ["node-4"],
-          }
-          ansible.limit = "all"
-        end
-      end
+      # if i == N
+      #   node.vm.provision "ansible" do |ansible|
+      #     ansible.playbook = "playbook.yml"
+      #     ansible.groups = {
+      #       "all:vars"   => {
+      #         "domain" => "yadc.local",
+      #         "network_interface" => "eth1"
+      #       },
+      #       "nodes"      => ["node-[1:4]"],
+      #       "etcd"       => ["node-2:4"],
+      #       "prometheus" => ["node-[2:3]"],
+      #       "loki"       => ["node-[3:4]"],
+      #       "grafana"    => ["node-4"],
+      #     }
+      #     ansible.limit = "all"
+      #   end
+      # end
     end
   end
 end
