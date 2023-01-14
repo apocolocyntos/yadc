@@ -1,0 +1,9 @@
+
+- name: Copy binary
+  ansible.builtin.copy:
+    src: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ binary }}"
+    dest: /usr/local/bin/{{ binary }}
+    owner: root
+    group: root
+    mode: 0755
+  become: true

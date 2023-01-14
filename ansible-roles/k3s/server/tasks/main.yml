@@ -1,0 +1,72 @@
+- name: Create download directory
+  ansible.builtin.file:
+    path: "{{ work_dir | default(playbook_dir + '/tmp') }}"
+    state: directory
+  become: true
+
+- name: Install CNI
+  ansible.builtin.include_role:
+    role: cni/common
+  vars:
+    cni_cluster_cidr: "{{ k3s.cluster.cidr }}"
+  when: container_runtime is defined and container_runtime == "containerd"
+
+- name: Install containerd
+  ansible.builtin.include_role:
+    role: containerd
+  when: container_runtime is defined and container_runtime == "containerd"
+
+- name: Create config directory
+  ansible.builtin.file:
+    path: /etc/rancher/k3s
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+  become: true
+
+- name: Copy config.yaml
+  ansible.builtin.template:
+    src: templates/config.yaml
+    dest: /etc/rancher/k3s/config.yaml
+    owner: root
+    group: root
+    mode: 0644
+  become: true
+  notify: restart k3s
+
+- name: Copy kube-apiserver.service
+  ansible.builtin.template:
+    src: templates/k3s.service
+    dest: /etc/systemd/system/k3s.service
+    owner: root
+    group: root
+    mode: 0644
+  become: true
+  notify: restart k3s
+
+- name: Enable and start service
+  ansible.builtin.systemd:
+    name: k3s
+    state: started
+    enabled: true
+    daemon_reload: true
+  become: true
+
+- name: Wait for /etc/rancher/k3s/k3s.yaml
+  ansible.builtin.wait_for:
+    path: /etc/rancher/k3s/k3s.yaml
+
+- name: Replace API endpoint
+  ansible.builtin.replace:
+    path: /etc/rancher/k3s/k3s.yaml
+    regexp: '127\.0\.0\.1'
+    replace: "{{ hostvars[inventory_hostname].ansible_facts[network_interface][network_protocol].address }}"
+  become: true
+
+- name: Fetch k3s config
+  ansible.builtin.fetch:
+    src: /etc/rancher/k3s/k3s.yaml
+    dest: "{{ work_dir | default(playbook_dir + '/.kube') }}/k3s.yaml"
+    flat: true
+  become: true

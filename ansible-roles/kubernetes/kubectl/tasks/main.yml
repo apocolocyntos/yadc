@@ -1,8 +1,8 @@
-- name: copy binaries
-  copy:
+- name: Copy binary
+  ansible.builtin.copy:
     src: "{{ work_dir | default(playbook_dir + '/tmp') }}/kubernetes/server/bin/kubectl"
-    dest: /usr/local/bin/kubectl
-    owner: root
-    group: root
+    dest: "{{ kubernetes.bin_dir }}/kubectl"
+    owner: "{{ kubernetes.user }}"
+    group: "{{ kubernetes.group }}"
     mode: 0755
   become: true

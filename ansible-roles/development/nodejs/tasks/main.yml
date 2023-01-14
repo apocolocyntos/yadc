@@ -1,12 +1,12 @@
 - name: create group
-  group:
+  ansible.builtin.group:
     name: "{{ nodejs.group }}"
     state: present
     system: true
   become: true
 
 - name: create user
-  user:
+  ansible.builtin.user:
     name: "{{ nodejs.user }}"
     create_home: true
     group: "{{ nodejs.group }}"
@@ -17,7 +17,7 @@
   become: true
 
 - name: get package
-  get_url:
+  ansible.builtin.get_url:
     url: https://nodejs.org/dist/v{{ nodejs.version }}/node-v{{ nodejs.version }}-linux-x64.tar.xz
     dest: "{{ work_dir | default(playbook_dir + '/tmp') }}/node-v{{ nodejs.version }}.tar.xz"
     checksum: "{{ nodejs.checksum }}"
@@ -25,7 +25,7 @@
   run_once: true
 
 - name: extract archive
-  unarchive:
+  ansible.builtin.unarchive:
     src: "{{ work_dir | default(playbook_dir + '/tmp') }}/node-v{{ nodejs.version }}.tar.xz"
     dest: "{{ nodejs.home }}"
     owner: "{{ nodejs.user }}"

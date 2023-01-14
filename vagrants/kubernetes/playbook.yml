@@ -30,7 +30,7 @@
     KUBECONFIG: "{{ ansible_env.PWD }}/.kube/config"
   tasks:
 
-    - name: Ensure the myapp Namespace exists.
+    - name: Create ClusterRole system:kube-apiserver-to-kubelet
       kubernetes.core.k8s:
         state: present
         definition:
@@ -54,7 +54,7 @@
               verbs:
                 - "*"
 
-    - name: Ensure the myapp Namespace exists.
+    - name: Create ClusterRole system:kube-apiserver
       kubernetes.core.k8s:
         state: present
         definition:

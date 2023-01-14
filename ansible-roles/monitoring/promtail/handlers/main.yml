@@ -1,5 +1,5 @@
 - name: restart promtail
-  systemd:
+  ansible.builtin.systemd:
     name: promtail
     state: restarted
     enabled: true

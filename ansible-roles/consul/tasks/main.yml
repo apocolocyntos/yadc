@@ -1,5 +1,5 @@
 - name: get package
-  get_url:
+  ansible.builtin.get_url:
     url: https://releases.hashicorp.com/consul/{{ consul.version }}/consul_{{ consul.version }}_linux_amd64.zip
     dest: "{{ work_dir | default(playbook_dir + '/tmp') }}/consul.zip"
     checksum: sha256:{{ consul.checksum }}
@@ -7,14 +7,14 @@
   run_once: true
 
 - name: extract package
-  unarchive:
+  ansible.builtin.unarchive:
     src: "{{ work_dir | default(playbook_dir + '/tmp') }}/consul.zip"
     dest: "{{ work_dir | default(playbook_dir + '/tmp') }}"
   delegate_to: localhost
   run_once: true
 
 - name: copy binary
-  copy:
+  ansible.builtin.copy:
     src: "{{ work_dir | default(playbook_dir + '/tmp') }}/consul"
     dest: "{{ consul.bin_dir }}/consul"
     owner: root
@@ -23,14 +23,14 @@
   become: true
 
 - name: create group {{ consul.group }}
-  group:
+  ansible.builtin.group:
     name: "{{ consul.group }}"
     system: true
     state: present
   become: true
 
 - name: create user {{ consul.user }}
-  user:
+  ansible.builtin.user:
     name: "{{ consul.user }}"
     group: "{{ consul.group }}"
     shell: /usr/bin/nologin
@@ -40,7 +40,7 @@
   become: true
 
 - name: create {{ consul.config_dir }}
-  file:
+  ansible.builtin.file:
     path: "{{ consul.config_dir }}"
     state: directory
     owner: "{{ consul.user }}"
@@ -51,7 +51,7 @@
   include_tasks: certificates.yml
 
 - name: copy config
-  template:
+  ansible.builtin.template:
     src: templates/config.hcl
     dest: "{{ consul.config_dir }}/config.hcl"
     owner: "{{ consul.user }}"
@@ -61,7 +61,7 @@
   notify: restart consul
 
 - name: copy consul.service
-  template:
+  ansible.builtin.template:
     src: templates/consul.service
     dest: /etc/systemd/system/consul.service
     owner: root
@@ -71,7 +71,7 @@
   notify: restart consul
 
 - name: enable service
-  systemd:
+  ansible.builtin.systemd:
     name: consul
     state: started
     enabled: true

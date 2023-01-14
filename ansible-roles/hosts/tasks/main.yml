@@ -1,9 +1,9 @@
-- hostname:
+- ansible.builtin.hostname:
     name: "{{ inventory_hostname }}"
   become: true
 
 - name: populate /ets/hosts
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: /etc/hosts
     line: "{{ hostvars[item].ansible_facts[network_interface][network_protocol].address }} {{ hostvars[item].ansible_hostname }}.{{ domain }} {{ hostvars[item].ansible_hostname }}"
     regexp: "(.*){{ hostvars[item].ansible_hostname }}"

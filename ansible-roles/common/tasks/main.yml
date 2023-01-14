@@ -1,23 +1,6 @@
 - name: create {{ work_dir | default(plabook_dir + '/tmp') }}
-  file:
+  ansible.builtin.file:
     path: "{{ work_dir | default(playbook_dir + '/tmp') }}"
     state: directory
   delegate_to: localhost
   run_once: true
-
-- name: update apt cache
-  apt:
-    update_cache: true
-  become: true
-
-- name: install acl for remote privilege escalation
-  package:
-    name: acl
-    state: present
-  become: true
-
-- name: install python3-selinux to get selinux status
-  package:
-    name: python3-selinux
-    state: present
-  become: true

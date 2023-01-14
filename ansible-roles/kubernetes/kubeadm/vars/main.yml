@@ -1,0 +1,3 @@
+kubeadm:
+  version: 1.26.0
+  checksum: sha256:72631449f26b7203701a1b99f6914f31859583a0e247c3ac0f6aaf59ca80af19

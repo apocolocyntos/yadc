@@ -1,5 +1,5 @@
-- name: generate private key
-  openssl_privatekey:
+- name: Generate private key
+  community.crypto.openssl_privatekey:
     path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/kubelet.key"
     type: RSA
     size: 2048
@@ -7,8 +7,8 @@
     mode: 0600
   delegate_to: localhost
 
-- name: generate csr
-  openssl_csr:
+- name: Generate csr
+  community.crypto.openssl_csr:
     path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/kubelet.csr"
     privatekey_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/kubelet.key"
     common_name: "system:node:{{ inventory_hostname }}"
@@ -26,8 +26,8 @@
     mode: 0600
   delegate_to: localhost
 
-- name: generate crt
-  openssl_certificate:
+- name: Generate crt
+  community.crypto.x509_certificate:
     path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/kubelet.crt"
     privatekey_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/kubelet.key"
     csr_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/kubelet.csr"
@@ -37,8 +37,8 @@
     mode: 0644
   delegate_to: localhost
 
-- name: copy Kubernetes certifciates
-  copy:
+- name: Copy Kubernetes certifciates
+  ansible.builtin.copy:
     src: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/{{ item }}"
     dest: "/etc/kubernetes/ssl/{{ item }}"
     owner: "{{ kubernetes.user }}"
@@ -48,12 +48,12 @@
   with_items:
     - kubelet.key
     - kubelet.crt
-  notify: restart kubelet
+  notify: Restart kubelet
 
-- include_tasks: ../../common/tasks/kubeconfig.yml
+- ansible.builtin.include_tasks: ../../common/tasks/kubeconfig.yml
   vars:
     kubeconfig_dest: /etc/kubernetes/kubelet.kubeconfig
     key_file: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/kubelet.key"
     crt_file: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/kubelet.crt"
     ca_file: "{{ work_dir | default(playbook_dir + '/tmp') }}/ca.crt"
-    notified_handler: restart kubelet
+    notified_handler: Restart kubelet

@@ -1,5 +1,5 @@
 - name: restart kube-proxy
-  systemd:
+  ansible.builtin.systemd:
     name: kube-proxy
     state: restarted
     daemon_reload: true

@@ -1,0 +1,3 @@
+crictl:
+  version: 1.26.0
+  checksum: sha256:cda5e2143bf19f6b548110ffba0fe3565e03e8743fadd625fee3d62fc4134eed

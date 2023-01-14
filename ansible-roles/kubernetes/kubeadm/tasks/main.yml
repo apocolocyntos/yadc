@@ -1,0 +1,35 @@
+- name: Copy binaries
+  ansible.builtin.copy:
+    src: "{{ work_dir | default(playbook_dir + '/tmp') }}/kubernetes/server/bin/kubeadm"
+    dest: "{{ kubernetes.bin_dir }}/kubeadm"
+    owner: "{{ kubernetes.user }}"
+    group: "{{ kubernetes.group }}"
+    mode: 0755
+  become: true
+
+# - name: Copy kubeadm-config.yaml
+#   ansible.builtin.template:
+#     src: templates/kubeadm-config.yaml
+#     dest: /etc/kubernetes/kubeadm-config.yaml
+#     owner: "{{ kubernetes.user }}"
+#     group: "{{ kubernetes.group }}"
+#     mode: 0600
+#   become: true
+#   notify: Restart kubeadm
+
+# - name: Copy kubeadm.service
+#   ansible.builtin.template:
+#     src: templates/kubeadm.service
+#     dest: /etc/systemd/system/kubeadm.service
+#     owner: "{{ kubernetes.user }}"
+#     group: "{{ kubernetes.group }}"
+#   become: true
+#   notify: Restart kubeadm
+
+# - name: Enabled kubeadm.service
+#   ansible.builtin.systemd:
+#     name: kubeadm
+#     state: started
+#     enabled: true
+#     daemon_reload: true
+#   become: true

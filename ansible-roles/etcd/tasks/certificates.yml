@@ -1,12 +1,12 @@
 - name: create local certificate directory
-  file:
+  ansible.builtin.file:
     path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}"
     state: directory
     mode: 0700
   delegate_to: localhost
 
 - name: generate private key
-  openssl_privatekey:
+  community.crypto.openssl_privatekey:
     path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/etcd.key"
     type: RSA
     size: 2048
@@ -15,7 +15,7 @@
   delegate_to: localhost
 
 - name: generate csr
-  openssl_csr:
+  community.crypto.openssl_csr:
     path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/etcd.csr"
     privatekey_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/etcd.key"
     common_name: "{{ inventory_hostname }}.{{ domain }}"
@@ -33,7 +33,7 @@
   delegate_to: localhost
 
 - name: generate crt
-  openssl_certificate:
+  community.crypto.x509_certificate:
     path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/etcd.crt"
     privatekey_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/etcd.key"
     csr_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/etcd.csr"
@@ -44,7 +44,7 @@
   delegate_to: localhost
 
 - name: create /etc/etcd/ssl
-  file:
+  ansible.builtin.file:
     path: /etc/etcd/ssl
     state: directory
     owner: "{{ etcd.user }}"
@@ -53,7 +53,7 @@
   become: true
 
 - name: copy CA certifciates
-  copy:
+  ansible.builtin.copy:
     src: "{{ work_dir | default(playbook_dir + '/tmp') }}/ca.crt"
     dest: /etc/etcd/ssl/ca.pem
     owner: "{{ etcd.user }}"
@@ -63,7 +63,7 @@
   notify: restart etcd
 
 - name: copy certifciates
-  copy:
+  ansible.builtin.copy:
     src: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/{{ item.src }}"
     dest: "/etc/etcd/ssl/{{ item.dest }}"
     owner: "{{ etcd.user }}"

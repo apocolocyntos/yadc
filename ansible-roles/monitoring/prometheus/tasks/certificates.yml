@@ -1,11 +1,11 @@
 - name: generate intermediate certificate
-  include_role:
+  ansible.builtin.include_role:
     name: certificates/intermediate
   vars:
     service_name: prometheus
 
 - name: create local certificate directory
-  file:
+  ansible.builtin.file:
     path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}"
     state: directory
     mode: 0700
@@ -16,7 +16,7 @@
 #
 
 - name: generate private key
-  openssl_privatekey:
+  community.crypto.openssl_privatekey:
     path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/prometheus.key"
     type: RSA
     size: 2048
@@ -25,7 +25,7 @@
   delegate_to: localhost
 
 - name: generate csr
-  openssl_csr:
+  community.crypto.openssl_csr:
     path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/prometheus.csr"
     privatekey_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/prometheus.key"
     common_name: "{{ inventory_hostname }}.{{ domain }}"
@@ -42,7 +42,7 @@
   delegate_to: localhost
 
 - name: generate crt
-  openssl_certificate:
+  community.crypto.x509_certificate:
     path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/prometheus.crt"
     privatekey_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/prometheus.key"
     csr_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/prometheus.csr"
@@ -57,7 +57,7 @@
 #
 
 - name: generate private key
-  openssl_privatekey:
+  community.crypto.openssl_privatekey:
     path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/prometheus-client.key"
     type: RSA
     size: 2048
@@ -66,7 +66,7 @@
   delegate_to: localhost
 
 - name: generate csr
-  openssl_csr:
+  community.crypto.openssl_csr:
     path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/prometheus-client.csr"
     privatekey_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/prometheus-client.key"
     common_name: prometheus - client
@@ -79,7 +79,7 @@
   delegate_to: localhost
 
 - name: generate crt
-  openssl_certificate:
+  community.crypto.x509_certificate:
     path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/prometheus-client.crt"
     privatekey_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/prometheus-client.key"
     csr_path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/prometheus-client.csr"
@@ -90,7 +90,7 @@
   delegate_to: localhost
 
 - name: create {{ prometheus.config_dir }}/ssl
-  file:
+  ansible.builtin.file:
     path: "{{ prometheus.config_dir }}/ssl"
     state: directory
     owner: "{{ prometheus.user }}"
@@ -99,7 +99,7 @@
   become: true
 
 - name: copy CA certifciates
-  copy:
+  ansible.builtin.copy:
     src: "{{ work_dir | default(playbook_dir + '/tmp') }}/prometheus-intermediate.crt"
     dest: "{{ prometheus.config_dir }}/ssl/ca.pem"
     owner: "{{ prometheus.user }}"
@@ -109,7 +109,7 @@
   notify: restart prometheus
 
 - name: copy certifciates
-  copy:
+  ansible.builtin.copy:
     src: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}/{{ item.src }}"
     dest: "{{ prometheus.config_dir }}/ssl/{{ item.dest }}"
     owner: "{{ prometheus.user }}"

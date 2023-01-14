@@ -1,0 +1,17 @@
+[Unit]
+Description=k3s Server
+Documentation=https://docs.k3s.io/reference/server-config
+
+[Service]
+ExecStart=/usr/local/bin/k3s server \
+{% if container_runtime is defined and container_runtime == "containerd" %}
+  --container-runtime-endpoint /var/run/containerd/containerd.sock \
+{% endif %}
+  --config /etc/rancher/k3s/config.yaml \
+  --debug \
+  -v 0
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

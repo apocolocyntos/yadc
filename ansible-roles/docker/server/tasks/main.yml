@@ -12,14 +12,14 @@
 #
 
 - name: create group
-  group:
+  ansible.builtin.group:
     name: "{{ docker.group }}"
     state: present
     system: true
   become: true
 
 - name: create user
-  user:
+  ansible.builtin.user:
     name: "{{ docker.user }}"
     create_home: true
     group: "{{ docker.group }}"
@@ -35,21 +35,21 @@
 #
 
 - name: get archive
-  get_url:
+  ansible.builtin.get_url:
     url: https://download.docker.com/linux/static/stable/x86_64/docker-{{ docker.version }}.tgz
     dest: "{{ work_dir | default(playbook_dir + '/tmp') }}/docker-{{ docker.version }}.tgz"
   delegate_to: localhost
   run_once: true
 
 - name: extract archive
-  unarchive:
+  ansible.builtin.unarchive:
     src: "{{ work_dir | default(playbook_dir + '/tmp') }}/docker-{{ docker.version }}.tgz"
     dest: "{{ work_dir | default(playbook_dir + '/tmp') }}"
   delegate_to: localhost
   run_once: true
 
 - name: copy binaries
-  copy:
+  ansible.builtin.copy:
     src: "{{ work_dir | default(playbook_dir + '/tmp') }}/docker/{{ item }}"
     dest: "{{ docker.bin_dir }}/{{ item }}"
     owner: root
@@ -68,7 +68,7 @@
   become: true
 
 - name: create {{ docker.config_dir }}
-  file:
+  ansible.builtin.file:
     path: "{{ docker.config_dir }}"
     state: directory
     owner: "{{ docker.user }}"
@@ -80,7 +80,7 @@
   include_tasks: certs.yml
 
 - name: copy daemon.json
-  template:
+  ansible.builtin.template:
     src: templates/daemon.json
     dest: "{{ docker.config_dir }}/daemon.json"
     owner: "{{ docker.user }}"
@@ -90,7 +90,7 @@
   notify: restart dockerd
 
 - name: copy dockerd.service
-  template:
+  ansible.builtin.template:
     src: templates/dockerd.service
     dest: /lib/systemd/system/dockerd.service
     owner: root
@@ -100,7 +100,7 @@
   notify: restart dockerd
 
 - name: start service
-  systemd:
+  ansible.builtin.systemd:
     enabled: true
     name: dockerd
     state: started
@@ -108,7 +108,7 @@
   become: true
 
 - name: add {{ ansible_env.USER }} to docker
-  user:
+  ansible.builtin.user:
     append: true
     groups: docker
     name: "{{ ansible_env.USER }}"

@@ -2,7 +2,7 @@
   include_tasks: cert.yml
 
 - name: copy binary
-  copy:
+  ansible.builtin.copy:
     src: "{{ work_dir | default(playbook_dir + '/tmp') }}/kubernetes/server/bin/kube-proxy"
     dest: /usr/local/bin/kube-proxy
     owner: root
@@ -11,7 +11,7 @@
   become: true
 
 - name: copy kube-proxy-config.yaml
-  template:
+  ansible.builtin.template:
     src: templates/kube-proxy-config.yaml
     dest: /etc/kubernetes/kube-proxy-config.yaml
     owner: "{{ kubernetes.user }}"
@@ -21,7 +21,7 @@
   notify: restart kube-proxy
 
 - name: copy kube-proxy.service
-  template:
+  ansible.builtin.template:
     src: templates/kube-proxy.service
     dest: /etc/systemd/system/kube-proxy.service
     owner: "{{ kubernetes.user }}"
@@ -30,7 +30,7 @@
   notify: restart kube-proxy
 
 - name: enabled kube-proxy.service
-  systemd:
+  ansible.builtin.systemd:
     name: kube-proxy
     state: started
     enabled: true

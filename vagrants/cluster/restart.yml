@@ -3,7 +3,7 @@
   tasks:
 
     - name: restart services
-      systemd:
+      ansible.builtin.systemd:
         name: "{{ item }}"
         state: restarted
       with_items:

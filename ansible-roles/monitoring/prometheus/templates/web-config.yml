@@ -1,5 +1,5 @@
 tls_server_config:
-    cert_file: "ssl/cert.pem"
+    cert_ansible.builtin.file: "ssl/cert.pem"
     key_file: "ssl/key.pem"
     client_auth_type: "RequireAndVerifyClientCert"
     client_ca_file: "ssl/ca.pem"

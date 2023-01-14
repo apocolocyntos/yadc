@@ -1,82 +1,68 @@
-- name: create download directory
-  file:
-    path: "{{ work_dir | default(playbook_dir + '/tmp') }}"
-    state: directory
-  delegate_to: localhost
-  run_once: true
-
-- name: create node directory
-  file:
-    path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}"
-    state: directory
-  delegate_to: localhost
-
-- name: download package
-  get_url:
-    url: https://dl.k8s.io/v1.23.5/kubernetes-server-linux-amd64.tar.gz
+- name: Download package
+  ansible.builtin.get_url:
+    url: https://dl.k8s.io/v{{ kubernetes.version }}/kubernetes-server-linux-amd64.tar.gz
     dest: "{{ work_dir | default(playbook_dir + '/tmp') }}/kubernetes-server-linux-amd64.tar.gz"
-    checksum: sha512:063ad74fb1463ee7a7bf4fb746eef1e02980c170cfa89c93444bee0841a84133bdbe91035f6608ece15096fec3e0c9aa50ebdc2b15ce589d86e2f07d10a1d747
+    checksum: "{{ kubernetes.checksum }}"
   delegate_to: localhost
   run_once: true
 
-- name: extract package
-  unarchive:
+- name: Unarchive package
+  ansible.builtin.unarchive:
     src: "{{ work_dir | default(playbook_dir + '/tmp') }}/kubernetes-server-linux-amd64.tar.gz"
     dest: "{{ work_dir | default(playbook_dir + '/tmp') }}"
   delegate_to: localhost
   run_once: true
 
-- name: copy binaries
-  copy:
-    src: "{{ work_dir | default(playbook_dir + '/tmp') }}/kubernetes/server/bin/{{ item }}"
-    dest: /usr/local/bin/{{ item }}
-    owner: root
-    group: root
-    mode: 0755
-  with_items:
-    - apiextensions-apiserver
-    - kube-aggregator
-    - kubectl-convert
-    - kube-log-runner
-    - kubeadm
-    - mounter
-  become: true
-
-- name: create /etc/kubernetes
-  file:
-    path: /etc/kubernetes
+- name: Create bin folder
+  ansible.builtin.file:
+    path: "{{ kubernetes.bin_dir }}"
     state: directory
     owner: "{{ kubernetes.user }}"
     group: "{{ kubernetes.group }}"
     mode: 0755
   become: true
 
-- name: create /etc/kubernetes/ssl
-  file:
-    path: /etc/kubernetes/ssl
-    state: directory
-    owner: "{{ kubernetes.user }}"
-    group: "{{ kubernetes.group }}"
-    mode: 0700
-  become: true
+# - name: Create node directory
+#   ansible.builtin.file:
+#     path: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ inventory_hostname }}"
+#     state: directory
+#   delegate_to: localhost
 
-- name: copy certifciate
-  copy:
-    src: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ item }}"
-    dest: "/etc/kubernetes/ssl/{{ item }}"
-    owner: "{{ kubernetes.user }}"
-    group: "{{ kubernetes.group }}"
-    mode: 0600
-  become: true
-  with_items:
-    - ca.crt
-    - ca.key
+# - name: Create /etc/kubernetes
+#   ansible.builtin.file:
+#     path: /etc/kubernetes
+#     state: directory
+#     owner: "{{ kubernetes.user }}"
+#     group: "{{ kubernetes.group }}"
+#     mode: 0755
+#   become: true
 
-- name: create /var/lib/kubernetes
-  file:
-    path: /var/lib/kubernetes
-    state: directory
-    owner: "{{ kubernetes.user }}"
-    group: "{{ kubernetes.group }}"
-    mode: 0755
-  become: true
+# - name: Create /etc/kubernetes/ssl
+#   ansible.builtin.file:
+#     path: /etc/kubernetes/ssl
+#     state: directory
+#     owner: "{{ kubernetes.user }}"
+#     group: "{{ kubernetes.group }}"
+#     mode: 0700
+#   become: true
+
+# - name: Copy certifciate
+#   ansible.builtin.copy:
+#     src: "{{ work_dir | default(playbook_dir + '/tmp') }}/{{ item }}"
+#     dest: "/etc/kubernetes/ssl/{{ item }}"
+#     owner: "{{ kubernetes.user }}"
+#     group: "{{ kubernetes.group }}"
+#     mode: 0600
+#   become: true
+#   with_items:
+#     - ca.crt
+#     - ca.key
+
+# - name: Create /var/lib/kubernetes
+#   ansible.builtin.file:
+#     path: /var/lib/kubernetes
+#     state: directory
+#     owner: "{{ kubernetes.user }}"
+#     group: "{{ kubernetes.group }}"
+#     mode: 0755
+#   become: true

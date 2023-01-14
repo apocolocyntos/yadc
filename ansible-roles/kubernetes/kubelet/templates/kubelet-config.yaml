@@ -6,14 +6,14 @@ authentication:
   webhook:
     enabled: true
   openssl:
-    clientCAFile: "/etc/kubernetes/ssl/ca.pem"
+    clientCAansible.builtin.file: "/etc/kubernetes/ssl/ca.pem"
 authorization:
   mode: Webhook
 clusterDomain: "cluster.local"
 clusterDNS:
   - "10.32.0.10"
-podCIDR: "{{ kubernetes.cluster.cidr }}"
+podCIDR: "{{ kubernetes_cluster_cidr }}"
 resolvConf: "/etc/resolv.conf"
 runtimeRequestTimeout: "15m"
-tlsCertFile: "/etc/kubernetes/ssl/kubelet.crt"
-tlsPrivateKeyFile: "/etc/kubernetes/ssl/kubelet.key"
+tlsCertansible.builtin.file: "/etc/kubernetes/ssl/kubelet.crt"
+tlsPrivateKeyansible.builtin.file: "/etc/kubernetes/ssl/kubelet.key"

@@ -5,7 +5,7 @@
   become: true
 
 - name: get promtail
-  get_url:
+  ansible.builtin.get_url:
     url: https://github.com/grafana/loki/releases/download/v{{ promtail.version }}/promtail-linux-amd64.zip
     dest: "{{ work_dir | default(playbook_dir + '/tmp') }}/promtail-linux-amd64.zip"
     checksum: sha256:{{ promtail.checksum }}
@@ -13,14 +13,14 @@
   run_once: true
 
 - name: extract archive
-  unarchive:
+  ansible.builtin.unarchive:
     src: "{{ work_dir | default(playbook_dir + '/tmp') }}/promtail-linux-amd64.zip"
     dest: "{{ work_dir | default(playbook_dir + '/tmp') }}"
   delegate_to: localhost
   run_once: true
 
 - name: copy binary
-  copy:
+  ansible.builtin.copy:
     src: "{{ work_dir | default(playbook_dir + '/tmp') }}/promtail-linux-amd64"
     dest: /usr/local/bin/promtail
     owner: root
@@ -29,7 +29,7 @@
   become: true
 
 - name: create /etc/promtail
-  file:
+  ansible.builtin.file:
     path: /etc/promtail
     state: directory
     owner: "{{ promtail.user }}"
@@ -38,7 +38,7 @@
   become: true
 
 - name: copy config
-  template:
+  ansible.builtin.template:
     src: templates/config.yaml
     dest: /etc/promtail/config.yaml
     owner: "{{ promtail.user }}"
@@ -47,7 +47,7 @@
   become: true
 
 - name: copy service
-  template:
+  ansible.builtin.template:
     src: templates/promtail.service
     dest: /etc/systemd/system/promtail.service
     owner: root
@@ -57,7 +57,7 @@
   notify: restart promtail
 
 - name: start service
-  systemd:
+  ansible.builtin.systemd:
     name: promtail
     state: started
     enabled: true

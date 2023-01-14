@@ -1,5 +1,5 @@
 - name: restart kube-controller-manager
-  systemd:
+  ansible.builtin.systemd:
     name: kube-controller-manager
     state: restarted
     daemon_reload: true

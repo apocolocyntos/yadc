@@ -1,5 +1,5 @@
 - name: copy binary
-  copy:
+  ansible.builtin.copy:
     src: "{{ work_dir | default(playbook_dir + '/tmp') }}/kubernetes/server/bin/kube-controller-manager"
     dest: /usr/local/bin/kube-controller-manager
     owner: root
@@ -11,7 +11,7 @@
   include_tasks: cert.yml
 
 - name: copy kube-controller-manager.service
-  template:
+  ansible.builtin.template:
     src: templates/kube-controller-manager.service
     dest: /etc/systemd/system/kube-controller-manager.service
     owner: root
@@ -21,7 +21,7 @@
   notify: restart kube-controller-manager
 
 - name: start kube-controller-manager.service
-  systemd:
+  ansible.builtin.systemd:
     name: kube-controller-manager
     state: started
     enabled: true
